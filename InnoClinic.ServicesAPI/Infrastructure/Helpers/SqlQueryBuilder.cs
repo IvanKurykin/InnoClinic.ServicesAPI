@@ -34,9 +34,6 @@ public static class SqlQueryBuilder
             .ToString();
     }
 
-    public static string BuildDeleteQuery(string tableName) =>
-       new StringBuilder().Append($"DELETE FROM {tableName} ").Append($"WHERE {Id} = @Id").ToString();
-
     public static string BuildSelectAllQuery(string tableName) =>
         $"SELECT * FROM {tableName}";
 

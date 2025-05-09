@@ -30,12 +30,6 @@ public class BaseRepository<T> : IRepository<T> where T : class
         return entity;
     }
 
-    public async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
-    {
-        var sql = SqlQueryBuilder.BuildDeleteQuery(TableName);
-        await _connection.ExecuteAsync(sql, entity);
-    }
-
     public async Task<IList<T>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var sql = SqlQueryBuilder.BuildSelectAllQuery(TableName);
