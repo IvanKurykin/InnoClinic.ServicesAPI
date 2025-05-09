@@ -10,7 +10,7 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
 {
     private readonly IDbConnection _connection = connection;
 
-    public async Task<Specialization?> GetWithServicesAsync(Guid id)
+    public async Task<Specialization?> GetWithServicesAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var dict = new Dictionary<Guid, Specialization>();
 
@@ -23,7 +23,7 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
         return dict.Values.FirstOrDefault();
     }
 
-    public async Task<IList<Specialization>> GetAllWithServicesAsync()
+    public async Task<IList<Specialization>> GetAllWithServicesAsync(CancellationToken cancellationToken = default)
     {
         var dict = new Dictionary<Guid, Specialization>();
 
@@ -36,6 +36,6 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
         return dict.Values.ToList();
     }
 
-    public async Task DeleteWithServicesAsync(Guid id) =>
+    public async Task DeleteWithServicesAsync(Guid id, CancellationToken cancellationToken = default) =>
         await _connection.ExecuteAsync(SpecializationSqlBuilder.DeleteWithServices(), new { Id = id });
 }

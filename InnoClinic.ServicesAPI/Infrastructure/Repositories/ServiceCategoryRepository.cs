@@ -10,7 +10,7 @@ public class ServiceCategoryRepository(IDbConnection connection) : BaseRepositor
 {
     private readonly IDbConnection _connection = connection;
 
-    public async Task<ServiceCategory?> GetWithServicesAsync(Guid id)
+    public async Task<ServiceCategory?> GetWithServicesAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var dict = new Dictionary<Guid, ServiceCategory>();
 
@@ -23,7 +23,7 @@ public class ServiceCategoryRepository(IDbConnection connection) : BaseRepositor
         return dict.Values.FirstOrDefault();
     }
 
-    public async Task<IList<ServiceCategory>> GetAllWithServicesAsync()
+    public async Task<IList<ServiceCategory>> GetAllWithServicesAsync(CancellationToken cancellationToken = default)
     {
         var dict = new Dictionary<Guid, ServiceCategory>();
 
@@ -35,6 +35,6 @@ public class ServiceCategoryRepository(IDbConnection connection) : BaseRepositor
         return dict.Values.ToList();
     }
 
-    public async Task DeleteWithServicesAsync(Guid id) =>
+    public async Task DeleteWithServicesAsync(Guid id, CancellationToken cancellationToken = default) =>
         await _connection.ExecuteAsync(ServiceCategorySqlBuilder.DeleteWithServices(), new { Id = id });
 }
