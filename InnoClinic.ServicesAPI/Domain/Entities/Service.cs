@@ -11,5 +11,5 @@ public sealed class Service
     public Specialization? Specialization { get; set; }
     public string Name { get; set; } = string.Empty;
     public decimal Price { get; set; } 
-    public string Status { get; set; } = Statuses.Inactive;
+    public Statuses Status { get; set; } = Statuses.Inactive;
 }

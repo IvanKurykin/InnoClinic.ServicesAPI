@@ -36,7 +36,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
         await _connection.ExecuteAsync(sql, entity);
     }
 
-    public async Task<List<T>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IList<T>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var sql = SqlQueryBuilder.BuildSelectAllQuery(TableName);
         return (await _connection.QueryAsync<T>(sql)).ToList();
