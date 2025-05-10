@@ -1,9 +1,10 @@
-﻿using Dapper;
+using Dapper;
 using Domain.Entities;
 using Domain.Interfaces;
 using Infrastructure.Helpers;
 using Infrastructure.Helpers.Constants;
 using System.Data;
+
 namespace Infrastructure.Repositories;
 
 public class ServiceRepository(IDbConnection connection) : BaseRepository<Service>(connection, "Services"), IServiceRepository
