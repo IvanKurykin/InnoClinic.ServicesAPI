@@ -1,10 +1,13 @@
 ﻿using System.Data;
+using Application.Extensions;
 using Microsoft.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
 using Domain.Interfaces;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Application.Interfaces;
+using Infrastructure.Services;
 
 namespace Infrastructure.Extensions;
 
@@ -19,6 +22,12 @@ public static class InfrastructureExtensions
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
         services.AddScoped<ISpecializationRepository, SpecializationRepository>();
+
+        services.AddScoped<IServiceService, ServiceService>();
+        services.AddScoped<IServiceCategoryService, ServiceCategoryService>();
+        services.AddScoped<ISpecializationService, SpecializationService>();
+
+        services.AddApplicationLayerServices();
 
         return services;
     }

@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Helpers;
+﻿namespace Infrastructure.Helpers.Constants;
 
 public static class DapperConstants
 {

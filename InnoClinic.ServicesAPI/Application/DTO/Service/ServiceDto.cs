@@ -8,5 +8,5 @@ public class ServiceDto
     public Guid SpecializationId { get; set; }
     public string Name { get; set; } = string.Empty;
     public decimal Price { get; set; }
-    public string Status { get; set; } = Statuses.Inactive;
+    public string Status { get; set; } = Statuses.Inactive.ToString();
 }

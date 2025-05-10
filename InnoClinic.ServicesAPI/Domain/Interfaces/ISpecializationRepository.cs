@@ -2,9 +2,9 @@
 
 namespace Domain.Interfaces;
 
-public interface ISpecializationRepository
+public interface ISpecializationRepository : IRepository<Specialization>
 {
-    Task<Specialization?> GetWithServicesAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IList<Specialization>> GetAllWithServicesAsync(CancellationToken cancellationToken = default);
-    Task DeleteWithServicesAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Specialization?> GetWithDependenciesAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IList<Specialization>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default);
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }
