@@ -19,7 +19,7 @@ public class ServiceCategoryRepository(IDbConnection connection) : BaseRepositor
             ServiceCategorySqlBuilder.GetByIdWithDependencies(),
             DapperMappingHelper.MapWithChildren<ServiceCategory, Service>(dict, c => c.Id, (c, list) => c.Services = list, (c, s) => ((List<Service>)c.Services!).Add(s)),
             new { Id = id },
-            splitOn: DapperConstants.SplitOnId);
+            splitOn: Helpers.Constants.DapperConstants.SplitOnId);
 
         return dict.Values.FirstOrDefault();
     }
@@ -31,7 +31,7 @@ public class ServiceCategoryRepository(IDbConnection connection) : BaseRepositor
         await _connection.QueryAsync<ServiceCategory, Service, ServiceCategory>(
             ServiceCategorySqlBuilder.GetAllWithDependencies(),
             DapperMappingHelper.MapWithChildren<ServiceCategory, Service>(dict, c => c.Id, (c, list) => c.Services = list, (c, s) => ((List<Service>)c.Services!).Add(s)),
-            splitOn: DapperConstants.SplitOnId);
+            splitOn: Helpers.Constants.DapperConstants.SplitOnId);
 
         return dict.Values.ToList();
     }
