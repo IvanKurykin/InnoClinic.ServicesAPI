@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Domain.Entities;
 using Domain.Interfaces;
 using Infrastructure.Helpers;
@@ -36,6 +36,7 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
 
         return dict.Values.ToList();
     }
+
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default) =>
         await _connection.ExecuteAsync(SpecializationSqlBuilder.Delete(), new { Id = id });

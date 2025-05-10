@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Dapper;
 using Domain.Entities;
 using Domain.Interfaces;

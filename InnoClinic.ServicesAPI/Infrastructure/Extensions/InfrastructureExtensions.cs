@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Application.Extensions;
 using Microsoft.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
