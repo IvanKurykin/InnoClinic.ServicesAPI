@@ -18,11 +18,11 @@ public class ServiceService(IServiceRepository repository, IMapper mapper) : Bas
         return _mapper.Map<ServiceResponseDto>(service);
     }
 
-    public async Task<IList<ServiceResponseDto>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<ServiceResponseDto>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default)
     {
         var services = await repository.GetAllWithDependenciesAsync(cancellationToken);
 
-        return _mapper.Map<IList<ServiceResponseDto>>(services);
+        return _mapper.Map<IReadOnlyCollection<ServiceResponseDto>>(services);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)

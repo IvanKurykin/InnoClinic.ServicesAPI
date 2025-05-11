@@ -18,11 +18,11 @@ public class SpecializationService(ISpecializationRepository repository, IMapper
         return _mapper.Map<SpecializationResponseDto?>(specialization);
     }
 
-    public async Task<IList<SpecializationResponseDto>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<SpecializationResponseDto>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default)
     {
         var specializations = await repository.GetAllWithDependenciesAsync(cancellationToken);
 
-        return _mapper.Map<IList<SpecializationResponseDto>>(specializations);
+        return _mapper.Map<IReadOnlyCollection<SpecializationResponseDto>>(specializations);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)

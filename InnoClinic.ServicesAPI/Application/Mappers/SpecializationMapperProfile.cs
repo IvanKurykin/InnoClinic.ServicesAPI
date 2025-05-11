@@ -13,8 +13,7 @@ public class SpecializationMapperProfile : Profile
     {
         CreateMap<SpecializationRequestDto, Specialization>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Services, opt => opt.Ignore())
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => MappingProfileHelper.ParseStatus(src.Status)));
+            .ForMember(dest => dest.Services, opt => opt.Ignore());
 
         CreateMap<Specialization, SpecializationResponseDto>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));

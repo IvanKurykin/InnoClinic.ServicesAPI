@@ -14,8 +14,7 @@ public class ServiceMapperProfile : Profile
         CreateMap<ServiceRequestDto, Service>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Category, opt => opt.Ignore())
-            .ForMember(dest => dest.Specialization, opt => opt.Ignore())
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => MappingProfileHelper.ParseStatus(src.Status)));
+            .ForMember(dest => dest.Specialization, opt => opt.Ignore());
 
         CreateMap<Service, ServiceResponseDto>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));

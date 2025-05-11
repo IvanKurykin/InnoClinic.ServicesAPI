@@ -13,7 +13,6 @@ public class SpecializationRequestDtoValidator : AbstractValidator<Specializatio
             .MaximumLength(100).WithMessage("Name must not exceed 100 characters.");
 
         RuleFor(x => x.Status)
-            .NotEmpty().WithMessage("Status is required.")
-            .Must(ValidationHelpers.BeValidStatus).WithMessage("Invalid status value.");
+            .NotEmpty().WithMessage("Status is required.");
     }
 }

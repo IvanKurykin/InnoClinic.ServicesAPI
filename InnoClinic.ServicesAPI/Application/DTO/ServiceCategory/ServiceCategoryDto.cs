@@ -3,5 +3,5 @@
 public class ServiceCategoryDto
 {
     public string Name { get; set; } = string.Empty;
-    public int TimeSlotDuration { get; set; }
+    public int TimeSlotDurationInMinutes { get; set; }
 }

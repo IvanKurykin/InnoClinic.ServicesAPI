@@ -17,7 +17,7 @@ public class BaseService<TEntity, TRequestDto, TResponseDto> : IService<TRequest
         _mapper = mapper;
     }
 
-    public async Task<TResponseDto> CreateAsync(TRequestDto dto, CancellationToken cancellationToken = default)
+    public virtual async Task<TResponseDto> CreateAsync(TRequestDto dto, CancellationToken cancellationToken = default)
     {
         if (dto is null) throw new BadRequestException<TEntity>(ErrorMessages.RequestDTOCannotBeNull);
 
@@ -29,7 +29,7 @@ public class BaseService<TEntity, TRequestDto, TResponseDto> : IService<TRequest
         return _mapper.Map<TResponseDto>(result);
     }
 
-    public async Task<TResponseDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual async Task<TResponseDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var result = await _repository.GetByIdAsync(id, cancellationToken);
 
@@ -38,14 +38,14 @@ public class BaseService<TEntity, TRequestDto, TResponseDto> : IService<TRequest
         return _mapper.Map<TResponseDto>(result);
     }
 
-    public async Task<IList<TResponseDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyCollection<TResponseDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var result = await _repository.GetAllAsync(cancellationToken);
 
-        return _mapper.Map<IList<TResponseDto>>(result);
+        return _mapper.Map<IReadOnlyCollection<TResponseDto>>(result);
     }
 
-    public async Task<TResponseDto> UpdateAsync(TRequestDto dto, CancellationToken cancellationToken = default)
+    public virtual async Task<TResponseDto> UpdateAsync(TRequestDto dto, CancellationToken cancellationToken = default)
     {
         if (dto is null) throw new BadRequestException<TEntity>(ErrorMessages.RequestDTOCannotBeNull);
 

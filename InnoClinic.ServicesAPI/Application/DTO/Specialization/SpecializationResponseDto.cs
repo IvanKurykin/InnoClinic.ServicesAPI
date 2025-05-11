@@ -5,5 +5,5 @@ namespace Application.DTO.Specialization;
 public class SpecializationResponseDto : SpecializationDto
 {
     public Guid Id { get; set; }
-    public IEnumerable<ServiceDto> Services = [];
+    public IReadOnlyCollection<ServiceDto> Services = [];
 }

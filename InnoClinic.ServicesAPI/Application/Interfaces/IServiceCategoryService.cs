@@ -5,6 +5,6 @@ namespace Application.Interfaces;
 public interface IServiceCategoryService : IService<ServiceCategoryRequestDto, ServiceCategoryResponseDto>
 {
     Task<ServiceCategoryResponseDto?> GetWithDependenciesAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IList<ServiceCategoryResponseDto>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<ServiceCategoryResponseDto>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default);
     Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }

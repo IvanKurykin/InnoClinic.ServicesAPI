@@ -18,11 +18,11 @@ public class ServiceCategoryService(IServiceCategoryRepository repository, IMapp
         return _mapper.Map<ServiceCategoryResponseDto?>(serviceCategory);
     }
 
-    public async Task<IList<ServiceCategoryResponseDto>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<ServiceCategoryResponseDto>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default)
     {
         var serviceCategories = await repository.GetAllWithDependenciesAsync(cancellationToken);
 
-        return _mapper.Map<IList<ServiceCategoryResponseDto>>(serviceCategories);
+        return _mapper.Map<IReadOnlyCollection<ServiceCategoryResponseDto>>(serviceCategories);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)

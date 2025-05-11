@@ -5,7 +5,6 @@ using Domain.Entities;
 
 namespace Application.Mappers;
 
-
 [ExcludeFromCodeCoverage]
 public class ServiceCategoryMapperProfile : Profile
 {

@@ -16,27 +16,27 @@ public class BaseRepository<T> : IRepository<T> where T : class
         TableName = tableName;
     }
 
-    public async Task<T> CreateAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual async Task<T> CreateAsync(T entity, CancellationToken cancellationToken = default)
     {
         var sql = SqlQueryBuilder.BuildInsertQuery<T>(TableName);
         await _connection.ExecuteAsync(sql, entity);
         return entity;
     }
 
-    public async Task<T> UpdateAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual async Task<T> UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
         var sql = SqlQueryBuilder.BuildUpdateQuery<T>(TableName);
         await _connection.ExecuteAsync(sql, entity);
         return entity;
     }
 
-    public async Task<IList<T>> GetAllAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyCollection<T>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var sql = SqlQueryBuilder.BuildSelectAllQuery(TableName);
         return (await _connection.QueryAsync<T>(sql)).ToList();
     }
 
-    public async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var sql = SqlQueryBuilder.BuildSelectByIdQuery(TableName);
         return await _connection.QueryFirstOrDefaultAsync<T>(sql, new { id });

@@ -24,7 +24,7 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
         return dict.Values.FirstOrDefault();
     }
 
-    public async Task<IList<Specialization>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<Specialization>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default)
     {
         var dict = new Dictionary<Guid, Specialization>();
 

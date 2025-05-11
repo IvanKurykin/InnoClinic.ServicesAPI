@@ -22,7 +22,6 @@ public class ServiceRequestDtoValidator : AbstractValidator<ServiceRequestDto>
             .GreaterThan(0).WithMessage("Price must be greater than 0.");
 
         RuleFor(x => x.Status)
-            .NotEmpty().WithMessage("Status is required.")
-            .Must(ValidationHelpers.BeValidStatus).WithMessage("Invalid status value.");
+            .NotEmpty().WithMessage("Status is required.");
     }
 }

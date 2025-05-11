@@ -5,5 +5,5 @@ namespace Application.DTO.ServiceCategory;
 public class ServiceCategoryResponseDto : ServiceCategoryDto
 { 
     public Guid Id { get; set; }
-    public IEnumerable<ServiceDto> Services = [];
+    public IReadOnlyCollection<ServiceDto> Services = [];
 }
