@@ -12,7 +12,7 @@ public class ServiceCategoryRequestDtoValidator : AbstractValidator<ServiceCateg
             .MaximumLength(100).WithMessage("Name must not exceed 100 characters.");
 
         RuleFor(x => x.TimeSlotDurationInMinutes)
-            .GreaterThan(0).WithMessage("TimeSlotSize must be greater than 0.")
-            .LessThanOrEqualTo(1440).WithMessage("TimeSlotSize must not exceed 1440 minutes (24 hours).");
+            .GreaterThan(0).WithMessage("Time slot duration in minutes must be greater than 0.")
+            .LessThanOrEqualTo(1440).WithMessage("Time slot duration in minutes must not exceed 1440 minutes (24 hours).");
     }
 }
