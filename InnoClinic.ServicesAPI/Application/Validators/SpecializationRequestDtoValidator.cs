@@ -4,7 +4,7 @@ using FluentValidation;
 
 namespace Application.Validators;
 
-public class SpecializationRequestDtoValidator : AbstractValidator<SpecializationRequestDto>
+public class SpecializationRequestDtoValidator : AbstractValidator<SpecializationCreateRequestDto>
 {
     public SpecializationRequestDtoValidator()
     {
@@ -13,6 +13,6 @@ public class SpecializationRequestDtoValidator : AbstractValidator<Specializatio
             .MaximumLength(100).WithMessage("Name must not exceed 100 characters.");
 
         RuleFor(x => x.Status)
-            .NotEmpty().WithMessage("Status is required.");
+            .IsInEnum().WithMessage("Status is required and must be a valid value.");
     }
 }

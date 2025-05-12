@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Application.Validators;
 
-public class ServiceCategoryRequestDtoValidator : AbstractValidator<ServiceCategoryRequestDto>
+public class ServiceCategoryRequestDtoValidator : AbstractValidator<ServiceCategoryCreateRequestDto>
 {
     public ServiceCategoryRequestDtoValidator()
     {

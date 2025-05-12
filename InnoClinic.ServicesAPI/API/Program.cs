@@ -1,10 +1,16 @@
+using API.Extensions;
+using API.Middleware;
 using Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddInfrastructureLayerServices(builder.Configuration);
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddCustomValidation();
+
+builder.Services.AddInfrastructureLayerServices(builder.Configuration);
 
 var app = builder.Build();
 
@@ -15,6 +21,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();

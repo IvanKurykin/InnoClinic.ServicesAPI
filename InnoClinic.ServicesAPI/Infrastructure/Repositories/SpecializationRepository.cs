@@ -2,6 +2,7 @@
 using Domain.Entities;
 using Domain.Interfaces;
 using Infrastructure.Helpers;
+using Infrastructure.Helpers.Builders;
 using Infrastructure.Helpers.Constants;
 using System.Data;
 

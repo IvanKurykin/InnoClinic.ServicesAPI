@@ -7,7 +7,7 @@ using Domain.Interfaces;
 
 namespace Infrastructure.Services;
 
-public class SpecializationService(ISpecializationRepository repository, IMapper mapper) : BaseService<Specialization, SpecializationRequestDto, SpecializationResponseDto>(repository, mapper), ISpecializationService
+public class SpecializationService(ISpecializationRepository repository, IMapper mapper) : BaseService<Specialization, SpecializationCreateRequestDto, SpecializationUpdateRequestDto, SpecializationResponseDto>(repository, mapper), ISpecializationService
 {
     public async Task<SpecializationResponseDto?> GetWithDependenciesAsync(Guid id, CancellationToken cancellationToken = default)
     {

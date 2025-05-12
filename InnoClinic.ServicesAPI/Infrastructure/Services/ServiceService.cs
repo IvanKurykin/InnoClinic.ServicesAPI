@@ -7,7 +7,7 @@ using Domain.Interfaces;
 
 namespace Infrastructure.Services;
 
-public class ServiceService(IServiceRepository repository, IMapper mapper) : BaseService<Service, ServiceRequestDto, ServiceResponseDto>(repository, mapper), IServiceService
+public class ServiceService(IServiceRepository repository, IMapper mapper) : BaseService<Service, ServiceCreateRequestDto, ServiceUpdateRequestDto, ServiceResponseDto>(repository, mapper), IServiceService
 {
     public async Task<ServiceResponseDto?> GetWithDependenciesAsync(Guid id, CancellationToken cancellationToken = default)
     {

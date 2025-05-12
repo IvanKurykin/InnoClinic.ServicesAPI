@@ -1,7 +1,8 @@
 ﻿using System.Data;
 using Domain.Interfaces;
 using Dapper;
-using Infrastructure.Helpers;
+using Infrastructure.Helpers.Builders;
+using System.Text.Json;
 
 namespace Infrastructure.Repositories;
 
@@ -23,11 +24,15 @@ public class BaseRepository<T> : IRepository<T> where T : class
         return entity;
     }
 
-    public virtual async Task<T> UpdateAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
         var sql = SqlQueryBuilder.BuildUpdateQuery<T>(TableName);
-        await _connection.ExecuteAsync(sql, entity);
-        return entity;
+        Console.WriteLine($"SQL: {sql}");
+        Console.WriteLine($"Params: {JsonSerializer.Serialize(entity)}");
+
+        var affected = await _connection.ExecuteAsync(sql, entity);
+        Console.WriteLine($"Affected rows: {affected}");
+        
     }
 
     public virtual async Task<IReadOnlyCollection<T>> GetAllAsync(CancellationToken cancellationToken = default)

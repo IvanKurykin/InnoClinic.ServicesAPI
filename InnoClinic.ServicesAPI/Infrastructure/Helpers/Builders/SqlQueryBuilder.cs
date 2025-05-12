@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Helpers;
+﻿namespace Infrastructure.Helpers.Builders;
 
 public static class SqlQueryBuilder
 {
@@ -11,7 +11,7 @@ public static class SqlQueryBuilder
         var columns = string.Join(", ", properties);
         var values = string.Join(", ", properties.Select(p => $"@{p}"));
 
-        return $"INSERT INTO {tableName} ({columns}) VALUES ({values}); SELECT SCOPE_IDENTITY();";
+        return $"INSERT INTO {tableName} (Id, {columns}) VALUES (@Id, {values})";
     }
 
     public static string BuildUpdateQuery<T>(string tableName)

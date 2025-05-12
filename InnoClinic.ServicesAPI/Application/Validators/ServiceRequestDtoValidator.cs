@@ -1,10 +1,9 @@
 ﻿using Application.DTO.Service;
-using Application.Helpers;
 using FluentValidation;
 
 namespace Application.Validators;
 
-public class ServiceRequestDtoValidator : AbstractValidator<ServiceRequestDto>
+public class ServiceRequestDtoValidator : AbstractValidator<ServiceCreateRequestDto>
 {
     public ServiceRequestDtoValidator()
     {
@@ -22,6 +21,6 @@ public class ServiceRequestDtoValidator : AbstractValidator<ServiceRequestDto>
             .GreaterThan(0).WithMessage("Price must be greater than 0.");
 
         RuleFor(x => x.Status)
-            .NotEmpty().WithMessage("Status is required.");
+            .IsInEnum().WithMessage("Status is required and must be a valid value.");
     }
 }
