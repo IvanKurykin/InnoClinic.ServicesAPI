@@ -18,7 +18,7 @@ public static class SqlQueryBuilder
     {
         var setClause = string.Join(", ", typeof(T).GetProperties().Where(p => p.Name is not Id && p.PropertyType.IsSimpleType()).Select(p => $"{p.Name} = @{p.Name}"));
 
-        return $"UPDATE {tableName} SET {setClause} WHERE {Id} = @Id";
+        return $"UPDATE {tableName} SET {setClause} OUTPUT inserted.* WHERE Id = @Id";
     }
 
     public static string BuildSelectAllQuery(string tableName) =>

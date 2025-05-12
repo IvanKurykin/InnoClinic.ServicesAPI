@@ -55,9 +55,7 @@ public class BaseService<TEntity, TCreateRequestDto, TUpdateRequestDto, TRespons
 
         if (entity is null) throw new NotFoundException<TEntity>(id);
 
-        await _repository.UpdateAsync(entity, cancellationToken);
-
-        var result = await _repository.GetByIdAsync(id, cancellationToken);
+        var result = await _repository.UpdateAsync(entity, cancellationToken);
 
         return _mapper.Map<TResponseDto>(result);
     }
