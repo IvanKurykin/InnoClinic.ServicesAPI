@@ -2,6 +2,7 @@
 using Domain.Entities;
 using Domain.Interfaces;
 using Infrastructure.Helpers;
+using Infrastructure.Helpers.Constants;
 using System.Data;
 
 namespace Infrastructure.Repositories;
@@ -10,12 +11,12 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
 {
     private readonly IDbConnection _connection = connection;
 
-    public async Task<Specialization?> GetWithServicesAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Specialization?> GetWithDependenciesAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var dict = new Dictionary<Guid, Specialization>();
 
         await _connection.QueryAsync<Specialization, Service, Specialization>(
-            SpecializationSqlBuilder.GetByIdWithServices(),
+            SpecializationSqlBuilder.GetByIdWithDependencies(),
             DapperMappingHelper.MapWithChildren<Specialization, Service>(dict, s => s.Id, (s, list) => s.Services = list, (s, svc) => ((List<Service>)s.Services!).Add(svc)),
             new { Id = id },
             splitOn: DapperConstants.SplitOnId);
@@ -23,12 +24,12 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
         return dict.Values.FirstOrDefault();
     }
 
-    public async Task<IList<Specialization>> GetAllWithServicesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<Specialization>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default)
     {
         var dict = new Dictionary<Guid, Specialization>();
 
         await _connection.QueryAsync<Specialization, Service, Specialization>(
-            SpecializationSqlBuilder.GetAllWithServices(),
+            SpecializationSqlBuilder.GetAllWithDependencies(),
             DapperMappingHelper.MapWithChildren<Specialization, Service>(dict, s => s.Id, (s, list) => s.Services = list, (s, svc) => ((List<Service>)s.Services!).Add(svc)
             ),
             splitOn: DapperConstants.SplitOnId);
@@ -36,6 +37,6 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
         return dict.Values.ToList();
     }
 
-    public async Task DeleteWithServicesAsync(Guid id, CancellationToken cancellationToken = default) =>
-        await _connection.ExecuteAsync(SpecializationSqlBuilder.DeleteWithServices(), new { Id = id });
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default) =>
+        await _connection.ExecuteAsync(SpecializationSqlBuilder.Delete(), new { Id = id });
 }
