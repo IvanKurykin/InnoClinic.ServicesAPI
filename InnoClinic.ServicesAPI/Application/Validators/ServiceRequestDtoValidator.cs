@@ -13,7 +13,7 @@ public class ServiceRequestDtoValidator : AbstractValidator<ServiceCreateRequest
         RuleFor(x => x.SpecializationId)
             .NotEmpty().WithMessage("SpecializationId is required.");
 
-        RuleFor(x => x.Name)
+        RuleFor(x => x.Name ?? "Initial inspection")
             .NotEmpty().WithMessage("Name is required.")
             .MaximumLength(100).WithMessage("Name must not exceed 100 characters.");
 

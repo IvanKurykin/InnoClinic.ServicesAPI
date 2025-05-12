@@ -8,7 +8,7 @@ public class SpecializationRequestDtoValidator : AbstractValidator<Specializatio
 {
     public SpecializationRequestDtoValidator()
     {
-        RuleFor(x => x.Name)
+        RuleFor(x => x.Name ?? "Therapy")
             .NotEmpty().WithMessage("Name is required.")
             .MaximumLength(100).WithMessage("Name must not exceed 100 characters.");
 
