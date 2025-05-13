@@ -36,7 +36,7 @@ public class ServiceController(IServiceService serviceService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponseDto?>> GetServiceByIdAsync([FromRoute] Guid id, CancellationToken cancellationToken) =>
-        await serviceService.GetByIdAsync(id, cancellationToken);
+        Ok(await serviceService.GetByIdAsync(id, cancellationToken));
 
     [ProducesResponseType(StatusCodes.Status200OK)]
     [HttpGet]
