@@ -1,6 +1,6 @@
 namespace Infrastructure.Helpers.Builders;
 
-public class SpecializationSqlBuilder
+public static class SpecializationSqlBuilder
 {
     public static string GetAllWithDependencies() =>
         @"SELECT sp.*, s.*

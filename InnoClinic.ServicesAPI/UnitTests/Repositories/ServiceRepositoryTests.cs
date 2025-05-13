@@ -95,7 +95,7 @@ public class ServiceRepositoryTests
         await _repository.DeleteAsync(serviceId);
     }
 
-    private bool CheckIdParameter(object param, Guid expectedId)
+    private static bool CheckIdParameter(object param, Guid expectedId)
     {
         var prop = param.GetType().GetProperty("id") ?? param.GetType().GetProperty("Id");
         if (prop is null) return false;

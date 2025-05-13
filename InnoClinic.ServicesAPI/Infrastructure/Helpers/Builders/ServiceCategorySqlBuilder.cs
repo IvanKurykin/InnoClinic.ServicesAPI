@@ -1,6 +1,6 @@
 namespace Infrastructure.Helpers.Builders;
 
-public class ServiceCategorySqlBuilder
+public static class ServiceCategorySqlBuilder
 {
     public static string GetAllWithDependencies() =>
        @"SELECT c.*, s.*

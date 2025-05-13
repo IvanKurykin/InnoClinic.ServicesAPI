@@ -14,7 +14,7 @@ public class SpecializationServiceTests
 {
     private readonly Mock<ISpecializationRepository> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
-    private readonly ISpecializationService _service;
+    private readonly SpecializationService _service;
 
     public SpecializationServiceTests()
     {

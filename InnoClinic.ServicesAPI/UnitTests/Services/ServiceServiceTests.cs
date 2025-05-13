@@ -14,7 +14,7 @@ public class ServiceServiceTests
 {
     private readonly Mock<IServiceRepository> _mockServiceRepository;
     private readonly Mock<IMapper> _mockMapper;
-    private readonly IServiceService _service;
+    private readonly ServiceService _service;
 
     public ServiceServiceTests()
     {
