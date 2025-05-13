@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Helpers;
+﻿namespace Infrastructure.Helpers.Builders;
 
 public static class ServiceSqlBuilder
 {
@@ -8,8 +8,8 @@ public static class ServiceSqlBuilder
           JOIN ServiceCategories c ON s.CategoryId = c.Id
           JOIN Specializations sp ON s.SpecializationId = sp.Id";
 
-     public static string GetByIdWithDependencies() =>
-        @"SELECT s.*, c.*, sp.*
+    public static string GetByIdWithDependencies() =>
+       @"SELECT s.*, c.*, sp.*
           FROM Services s
           JOIN ServiceCategories c ON s.CategoryId = c.Id
           JOIN Specializations sp ON s.SpecializationId = sp.Id

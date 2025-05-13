@@ -1,7 +1,7 @@
 ﻿using System.Data;
-using Domain.Interfaces;
 using Dapper;
-using Infrastructure.Helpers;
+using Domain.Interfaces;
+using Infrastructure.Helpers.Builders;
 
 namespace Infrastructure.Repositories;
 
@@ -26,8 +26,8 @@ public class BaseRepository<T> : IRepository<T> where T : class
     public virtual async Task<T> UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
         var sql = SqlQueryBuilder.BuildUpdateQuery<T>(TableName);
-        await _connection.ExecuteAsync(sql, entity);
-        return entity;
+
+        return await _connection.QuerySingleAsync<T>(sql, entity);   
     }
 
     public virtual async Task<IReadOnlyCollection<T>> GetAllAsync(CancellationToken cancellationToken = default)

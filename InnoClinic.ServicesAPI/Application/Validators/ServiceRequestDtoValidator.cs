@@ -1,10 +1,9 @@
 ﻿using Application.DTO.Service;
-using Application.Helpers;
 using FluentValidation;
 
 namespace Application.Validators;
 
-public class ServiceRequestDtoValidator : AbstractValidator<ServiceRequestDto>
+public class ServiceRequestDtoValidator : AbstractValidator<ServiceCreateRequestDto>
 {
     public ServiceRequestDtoValidator()
     {
@@ -14,7 +13,7 @@ public class ServiceRequestDtoValidator : AbstractValidator<ServiceRequestDto>
         RuleFor(x => x.SpecializationId)
             .NotEmpty().WithMessage("SpecializationId is required.");
 
-        RuleFor(x => x.Name)
+        RuleFor(x => x.Name ?? "Initial inspection")
             .NotEmpty().WithMessage("Name is required.")
             .MaximumLength(100).WithMessage("Name must not exceed 100 characters.");
 
@@ -22,6 +21,6 @@ public class ServiceRequestDtoValidator : AbstractValidator<ServiceRequestDto>
             .GreaterThan(0).WithMessage("Price must be greater than 0.");
 
         RuleFor(x => x.Status)
-            .NotEmpty().WithMessage("Status is required.");
+            .IsInEnum().WithMessage("Status is required and must be a valid value.");
     }
 }

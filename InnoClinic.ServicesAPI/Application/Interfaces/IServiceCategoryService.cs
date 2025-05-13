@@ -2,7 +2,7 @@
 
 namespace Application.Interfaces;
 
-public interface IServiceCategoryService : IService<ServiceCategoryRequestDto, ServiceCategoryResponseDto>
+public interface IServiceCategoryService : IService<ServiceCategoryCreateRequestDto, ServiceCategoryUpdateRequestDto, ServiceCategoryResponseDto>
 {
     Task<ServiceCategoryResponseDto?> GetWithDependenciesAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<ServiceCategoryResponseDto>> GetAllWithDependenciesAsync(CancellationToken cancellationToken = default);

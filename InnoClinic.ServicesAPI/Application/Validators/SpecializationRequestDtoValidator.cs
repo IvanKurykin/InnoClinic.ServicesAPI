@@ -4,15 +4,15 @@ using FluentValidation;
 
 namespace Application.Validators;
 
-public class SpecializationRequestDtoValidator : AbstractValidator<SpecializationRequestDto>
+public class SpecializationRequestDtoValidator : AbstractValidator<SpecializationCreateRequestDto>
 {
     public SpecializationRequestDtoValidator()
     {
-        RuleFor(x => x.Name)
+        RuleFor(x => x.Name ?? "Therapy")
             .NotEmpty().WithMessage("Name is required.")
             .MaximumLength(100).WithMessage("Name must not exceed 100 characters.");
 
         RuleFor(x => x.Status)
-            .NotEmpty().WithMessage("Status is required.");
+            .IsInEnum().WithMessage("Status is required and must be a valid value.");
     }
 }
