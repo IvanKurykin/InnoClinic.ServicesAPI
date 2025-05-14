@@ -8,28 +8,28 @@ public static class ServiceRepositoryTestConstants
     public const string CreateDbSql = "CREATE DATABASE ServiceTestDb;";
     public const string UseDbSql = "USE ServiceTestDb;";
     public const string CreateTablesSql = @"
-        CREATE TABLE ServiceCategories (
-            Id UNIQUEIDENTIFIER PRIMARY KEY,
-            Name NVARCHAR(100),
-            TimeSlotDurationInMinutes INT
-        );
+            CREATE TABLE ServiceCategories (
+                Id UNIQUEIDENTIFIER PRIMARY KEY,
+                Name NVARCHAR(100),
+                TimeSlotDurationInMinutes INT
+            );
 
-        CREATE TABLE Specializations (
-            Id UNIQUEIDENTIFIER PRIMARY KEY,
-            Name NVARCHAR(100),
-            Status INT
-        );
+            CREATE TABLE Specializations (
+                Id UNIQUEIDENTIFIER PRIMARY KEY,
+                Name NVARCHAR(100),
+                Status INT
+            );
 
-        CREATE TABLE Services (
-            Id UNIQUEIDENTIFIER PRIMARY KEY,
-            Name NVARCHAR(100),
-            Price DECIMAL(18, 2),
-            Status INT,
-            CategoryId UNIQUEIDENTIFIER,
-            SpecializationId UNIQUEIDENTIFIER,
-            FOREIGN KEY (CategoryId) REFERENCES ServiceCategories(Id),
-            FOREIGN KEY (SpecializationId) REFERENCES Specializations(Id)
-        );";
+            CREATE TABLE Services (
+                Id UNIQUEIDENTIFIER PRIMARY KEY,
+                Name NVARCHAR(100),
+                Price DECIMAL(18, 2),
+                Status INT,
+                CategoryId UNIQUEIDENTIFIER,
+                SpecializationId UNIQUEIDENTIFIER,
+                FOREIGN KEY (CategoryId) REFERENCES ServiceCategories(Id),
+                FOREIGN KEY (SpecializationId) REFERENCES Specializations(Id)
+            );";
 
     public const string InsertCategorySql = "INSERT INTO ServiceCategories (Id, Name, TimeSlotDurationInMinutes) VALUES (@Id, @Name, @Duration)";
     public const string InsertSpecializationSql = "INSERT INTO Specializations (Id, Name, Status) VALUES (@Id, @Name, @Status)";

@@ -44,9 +44,13 @@ jobs:
             mcr.microsoft.com/mssql/server:2022-latest
           sleep 30
 
-      - name: Update connection string for tests
+      - name: Find and update connection string in .cs files
         run: |
-          sed -i 's|Server=(localdb)\\mssqllocaldb|Server=localhost,$PORT|g' path/to/your/test/project/TestFile.cs
+          PORT=$(shuf -i 1500-1600 -n 1)
+          find ./UnitTests/TestCases -type f -name "*.cs" | while read file; do
+            echo "Updating $file"
+            sed -i 's|public const string ConnectionString = "Server=(localdb)\\mssqllocaldb;Integrated Security=true;MultipleActiveResultSets=true;"|public const string ConnectionString = "Server=localhost,'$PORT';Integrated Security=true;MultipleActiveResultSets=true;"|' "$file"
+          done
 
   test:
     runs-on: ubuntu-latest
