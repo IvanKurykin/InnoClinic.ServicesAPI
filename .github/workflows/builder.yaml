@@ -17,10 +17,10 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2022-latest
         options: --health-cmd="curl --silent --fail localhost:1433 || exit 1" --health-start-period=30s
         ports:
-          - 1433:1433
+          - 14330:1433
         env:
           ACCEPT_EULA: "Y"
-          SA_PASSWORD: "YourPassword123"
+          SA_PASSWORD: ${{ secrets.SQL_SERVER_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
