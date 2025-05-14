@@ -12,9 +12,18 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        options: --health-cmd="curl --silent --fail localhost:1433 || exit 1" --health-start-period=30s
+        ports:
+          - 1433:1433
+        env:
+          ACCEPT_EULA: "Y"
+          SA_PASSWORD: "YourPassword123"
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
@@ -22,12 +31,14 @@ jobs:
           
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
-      
+
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
-      
-      - name: Test
+
+      - name: Run tests
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --verbosity normal --configuration Release
+        env:
+          CONNECTION_STRING: "Server=localhost,1433;Database=TestDb;User Id=sa;Password=YourPassword123;"
 
   analyze:
     runs-on: ubuntu-latest
