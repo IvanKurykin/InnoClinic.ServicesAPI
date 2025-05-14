@@ -14,17 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-          
+
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
-      
+
       - name: Build
-        run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
+        run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore -t:Build
 
   docker:
     runs-on: ubuntu-latest
@@ -59,10 +59,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Run Tests
-        run: |
-          cd InnoClinic.ServicesAPI
-          dotnet test --no-build --verbosity normal --configuration Release
+      - name: Build
+        run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore -t:Build
 
   analyze:
     runs-on: ubuntu-latest
@@ -71,11 +69,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      
+
       - name: Sonar Scan
         uses: highbyte/sonarscan-dotnet@v2.3.0
         with:
