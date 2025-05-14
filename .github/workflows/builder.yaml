@@ -60,7 +60,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Tests
-        run: dotnet test InnoClinic.ServicesAPI/UnitTests/UnitTests.csproj --no-build --verbosity normal --configuration Release
+        run: |
+          cd InnoClinic.ServicesAPI
+          dotnet test --no-build --verbosity normal --configuration Release
 
   analyze:
     runs-on: ubuntu-latest
