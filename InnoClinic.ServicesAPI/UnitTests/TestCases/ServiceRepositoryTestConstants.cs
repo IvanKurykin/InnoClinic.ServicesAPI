@@ -2,7 +2,8 @@
 
 public static class ServiceRepositoryTestConstants
 {
-    public const string ConnectionString = "Server=(localdb)\\mssqllocaldb;Integrated Security=true;MultipleActiveResultSets=true;";
+    public static string ConnectionString => Environment.GetEnvironmentVariable("TEST_DB_CONNECTION_STRING")
+        ?? "Server=(localdb)\\mssqllocaldb;Integrated Security=true;MultipleActiveResultSets=true;";
     public const string DatabaseName = "ServiceTestDb";
     public const string CheckDbExistsSql = "IF DB_ID('ServiceTestDb') IS NOT NULL DROP DATABASE ServiceTestDb;";
     public const string CreateDbSql = "CREATE DATABASE ServiceTestDb;";
