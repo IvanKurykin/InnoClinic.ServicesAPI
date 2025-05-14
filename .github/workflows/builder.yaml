@@ -66,10 +66,37 @@ jobs:
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
 
+      - name: Wait for MSSQL to be ready
+        run: |
+          echo "Waiting for MSSQL on port ${{ needs.docker.outputs.port }}..."
+          for i in {1..30}; do
+            /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P ${{ secrets.SQL_SERVER_PASSWORD }} -Q "SELECT 1"
+            if [ $? -eq 0 ]; then
+              echo "MSSQL is ready!"
+              exit 0
+            fi
+            echo "Attempt $i: MSSQL not ready yet, retrying in 2 seconds..."
+            sleep 2
+          done
+          echo "MSSQL did not become ready in time."
+          exit 1
+
+      - name: Show connection string
+        run: echo "Using connection string: $TEST_DB_CONNECTION_STRING"
+        env:
+          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;"
+
       - name: Run tests
         env:
           TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;"
-        run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release
+        run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --logger "trx;LogFileName=test_results.trx" --verbosity detailed
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: '**/test_results.trx'
 
   analyze:
     runs-on: ubuntu-latest
