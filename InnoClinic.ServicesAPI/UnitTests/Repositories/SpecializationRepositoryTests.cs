@@ -1,10 +1,13 @@
 ﻿using Dapper;
 using Domain.Entities;
 using Domain.Enums;
+using FluentAssertions;
 using Infrastructure.Repositories;
+using Microsoft.Data.SqlClient;
 using Moq;
 using Moq.Dapper;
 using System.Data;
+using UnitTests.TestCases;
 using Xunit;
 
 namespace UnitTests.Repositories
@@ -90,6 +93,135 @@ namespace UnitTests.Repositories
             _mockConnection.SetupDapperAsync(c => c.ExecuteAsync(It.IsAny<string>(), It.Is<object>(o => CheckIdParameter(o, specId)), null, null, null)).ReturnsAsync(1);
 
             await _repository.DeleteAsync(specId);
+        }
+
+        [Fact]
+        public async Task GetWithDependenciesAsyncShouldReturnSpecializationWithRelatedServices()
+        {
+            using var connection = new SqlConnection(SpecializationRepositoryTestConstants.ConnectionString);
+            await connection.OpenAsync();
+
+            await connection.ExecuteAsync(SpecializationRepositoryTestConstants.CheckDbExistsSql);
+            await connection.ExecuteAsync(SpecializationRepositoryTestConstants.CreateDbSql);
+
+            var useDbSql = SpecializationRepositoryTestConstants.UseDbSql;
+            await connection.ExecuteAsync(useDbSql);
+
+            var createTablesSql = SpecializationRepositoryTestConstants.CreateTablesSql;
+            await connection.ExecuteAsync(createTablesSql);
+
+            var categoryId = Guid.NewGuid();
+            var specializationId = Guid.NewGuid();
+            var serviceId = Guid.NewGuid();
+
+            await connection.ExecuteAsync(
+            SpecializationRepositoryTestConstants.InsertCategorySql,
+            new { Id = categoryId, Name = "Therapy", Duration = 30 });
+
+            await connection.ExecuteAsync(
+                SpecializationRepositoryTestConstants.InsertSpecializationSql,
+                new { Id = specializationId, Name = "General", Status = 1 });
+
+            await connection.ExecuteAsync(
+                SpecializationRepositoryTestConstants.InsertServiceSql,
+                new
+                {
+                    Id = serviceId,
+                    Name = "Massage",
+                    Price = 50m,
+                    Status = 1,
+                    CategoryId = categoryId,
+                    SpecializationId = specializationId
+                });
+
+            var repository = new SpecializationRepository(connection);
+
+            var result = await repository.GetWithDependenciesAsync(specializationId);
+
+            result.Should().NotBeNull();
+            result!.Id.Should().Be(specializationId);
+            result.Services.Should().Contain(s => s.Id == serviceId);
+
+            await connection.ExecuteAsync(SpecializationRepositoryTestConstants.CloseConnectionsSql);
+            await connection.CloseAsync();
+
+            await connection.ExecuteAsync(SpecializationRepositoryTestConstants.DropDbSql);
+        }
+
+        [Fact]
+        public async Task GetAllWithDependenciesAsyncShouldReturnSpecializationsWithRelatedServices()
+        {
+            using var connection = new SqlConnection(SpecializationRepositoryTestConstants.ConnectionString);
+            await connection.OpenAsync();
+
+            await connection.ExecuteAsync(SpecializationRepositoryTestConstants.CheckDbExistsSql);
+            await connection.ExecuteAsync(SpecializationRepositoryTestConstants.CreateDbSql);
+
+            var useDbSql = SpecializationRepositoryTestConstants.UseDbSql;
+            await connection.ExecuteAsync(useDbSql);
+
+            var createTablesSql = SpecializationRepositoryTestConstants.CreateTablesSql;
+            await connection.ExecuteAsync(createTablesSql);
+
+            var categoryId1 = Guid.NewGuid();
+            var categoryId2 = Guid.NewGuid();
+            var specializationId1 = Guid.NewGuid();
+            var specializationId2 = Guid.NewGuid();
+            var serviceId1 = Guid.NewGuid();
+            var serviceId2 = Guid.NewGuid();
+
+            await connection.ExecuteAsync(
+                SpecializationRepositoryTestConstants.InsertCategorySql,
+                new { Id = categoryId1, Name = "Therapy", Duration = 30 });
+
+            await connection.ExecuteAsync(
+                SpecializationRepositoryTestConstants.InsertCategorySql,
+                new { Id = categoryId2, Name = "Massage", Duration = 45 });
+
+            await connection.ExecuteAsync(
+                SpecializationRepositoryTestConstants.InsertSpecializationSql,
+                new { Id = specializationId1, Name = "General", Status = 1 });
+
+            await connection.ExecuteAsync(
+                SpecializationRepositoryTestConstants.InsertSpecializationSql,
+                new { Id = specializationId2, Name = "Advanced", Status = 1 });
+
+            await connection.ExecuteAsync(
+                SpecializationRepositoryTestConstants.InsertServiceSql,
+                new
+                {
+                    Id = serviceId1,
+                    Name = "Service1",
+                    Price = 100m,
+                    Status = 1,
+                    CategoryId = categoryId1,
+                    SpecializationId = specializationId1
+                });
+
+            await connection.ExecuteAsync(
+                SpecializationRepositoryTestConstants.InsertServiceSql,
+                new
+                {
+                    Id = serviceId2,
+                    Name = "Service2",
+                    Price = 150m,
+                    Status = 1,
+                    CategoryId = categoryId2,
+                    SpecializationId = specializationId2
+                });
+
+            var repository = new SpecializationRepository(connection);
+            var result = await repository.GetAllWithDependenciesAsync();
+
+            result.Should().NotBeNull();
+            result.Should().HaveCount(2);
+            result.Should().Contain(s => s.Id == specializationId1 && s.Services.Any(service => service.Id == serviceId1));
+            result.Should().Contain(s => s.Id == specializationId2 && s.Services.Any(service => service.Id == serviceId2));
+
+            await connection.ExecuteAsync(SpecializationRepositoryTestConstants.CloseConnectionsSql);
+            await connection.CloseAsync();
+
+            await connection.ExecuteAsync(SpecializationRepositoryTestConstants.DropDbSql);
         }
 
         private static bool CheckIdParameter(object param, Guid expectedId)
