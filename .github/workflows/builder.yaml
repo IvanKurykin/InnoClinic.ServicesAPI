@@ -15,7 +15,7 @@ jobs:
     services:
       sqlserver:
         image: mcr.microsoft.com/mssql/server:2019-latest
-        options: --health-cmd="curl --silent --fail localhost:1433 || exit 1" --health-start-period=30s
+        options: --health-cmd="curl --silent --fail localhost:1433 || exit 1" --health-start-period=60s
         ports:
           - 14331:1433
         env:
@@ -38,7 +38,7 @@ jobs:
       - name: Run tests
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --verbosity normal --configuration Release
         env:
-          CONNECTION_STRING: "Server=localhost,1433;Database=TestDb;User Id=sa;Password=YourPassword123;"
+          CONNECTION_STRING: "Server=localhost,1433;Database=TestDb;User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};"
 
   analyze:
     runs-on: ubuntu-latest
