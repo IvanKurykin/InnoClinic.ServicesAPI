@@ -12,7 +12,11 @@ jobs:
     services:
       sqlserver:
         image: mcr.microsoft.com/mssql/server:2019-latest
-        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{ secrets.SQL_SERVER_PASSWORD }}' -Q 'SELECT 1' || exit 1" --health-start-period=20s
+        options: >-
+          --health-cmd="bash -c '/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"${{ secrets.SQL_SERVER_PASSWORD }}\" -Q \"SELECT 1\"'"
+          --health-interval=10s
+      	  --health-timeout=5s
+      	  --health-retries=6
         ports:
           - 14331:1433
         env:
