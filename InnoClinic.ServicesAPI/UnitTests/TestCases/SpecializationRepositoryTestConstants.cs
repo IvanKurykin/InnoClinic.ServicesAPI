@@ -2,7 +2,7 @@
 
 public static class SpecializationRepositoryTestConstants
 {
-    public const string ConnectionString = "Server=(localdb)\\mssqllocaldb;Integrated Security=true;MultipleActiveResultSets=true;";
+    public static readonly string ConnectionString = Environment.GetEnvironmentVariable("TEST_DB_CONNECTION") ?? "Server=(localdb)\\mssqllocaldb;Integrated Security=true;";
     public const string DatabaseName = "SpecializationTestDb";
     public const string CheckDbExistsSql = "IF DB_ID('SpecializationTestDb') IS NOT NULL DROP DATABASE SpecializationTestDb;";
     public const string CreateDbSql = "CREATE DATABASE SpecializationTestDb;";

@@ -29,34 +29,45 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     needs: build
+    outputs:
+      port: ${{ steps.set-port.outputs.port }}
+
     steps:
-      - name: Check out code
+      - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Generate random port
+        id: set-port
+        run: |
+          PORT=$(shuf -i 1500-1600 -n 1)
+          echo "PORT=$PORT" >> $GITHUB_ENV
+          echo "::set-output name=port::$PORT"
 
       - name: Run MSSQL Docker container
         run: |
-          PORT=$(shuf -i 1500-1600 -n 1)
           docker run -d \
             -e 'ACCEPT_EULA=Y' \
             -e 'SA_PASSWORD=${{ secrets.SQL_SERVER_PASSWORD }}' \
-            -p $PORT:1433 \
+            -p ${{ env.PORT }}:1433 \
             --name mssql-server \
             mcr.microsoft.com/mssql/server:2022-latest
-          sleep 30
 
-      - name: Find and update connection string in .cs files
+      - name: Wait for SQL Server to be ready
         run: |
-          PORT=$(shuf -i 1500-1600 -n 1)
-          find ./UnitTests/TestCases -type f -name "*.cs" | while read file; do
-            echo "Updating $file"
-            sed -i 's|public const string ConnectionString = "Server=(localdb)\\mssqllocaldb;Integrated Security=true;MultipleActiveResultSets=true;"|public const string ConnectionString = "Server=localhost,'$PORT';Integrated Security=true;MultipleActiveResultSets=true;"|' "$file"
+          for i in {1..30}; do
+            if timeout 1 bash -c "</dev/tcp/localhost/${{ env.PORT }}"; then
+              echo "SQL Server is ready"
+              break
+            fi
+            echo "Waiting for SQL Server..."
+            sleep 2
           done
 
   test:
     runs-on: ubuntu-latest
     needs: docker
     steps:
-      - name: Check out code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup .NET 8
@@ -69,6 +80,11 @@ jobs:
 
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
+
+      - name: Run tests with connection string override
+        env:
+          TEST_DB_CONNECTION: "Server=localhost,${{ needs.docker.outputs.port }};Database=master;User=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};TrustServerCertificate=true;"
+        run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-build
 
   analyze:
     runs-on: ubuntu-latest

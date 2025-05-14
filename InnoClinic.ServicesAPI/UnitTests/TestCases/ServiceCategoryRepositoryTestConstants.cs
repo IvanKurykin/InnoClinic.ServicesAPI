@@ -2,7 +2,7 @@
 
 public static class ServiceCategoryRepositoryTestConstants
 {
-    public const string ConnectionString = "Server=(localdb)\\mssqllocaldb;Integrated Security=true;MultipleActiveResultSets=true;";
+    public static readonly string ConnectionString = Environment.GetEnvironmentVariable("TEST_DB_CONNECTION") ?? "Server=(localdb)\\mssqllocaldb;Integrated Security=true;";
     public const string DatabaseName = "ServiceCategoryTestDb";
     public const string CheckDbExistsSql = "IF DB_ID('ServiceCategoryTestDb') IS NOT NULL DROP DATABASE ServiceCategoryTestDb;";
     public const string CreateDbSql = "CREATE DATABASE ServiceCategoryTestDb;";
