@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     services:
       sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+        image: mcr.microsoft.com/mssql/server:2019-latest
         options: --health-cmd="curl --silent --fail localhost:1433 || exit 1" --health-start-period=30s
         ports:
-          - 14330:1433
+          - 14331:1433
         env:
           ACCEPT_EULA: "Y"
           SA_PASSWORD: ${{ secrets.SQL_SERVER_PASSWORD }}
