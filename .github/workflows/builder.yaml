@@ -6,21 +6,19 @@ on:
   pull_request:
     branches: ["main"]
 
-env:
-  DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
-
 jobs:
   build:
     runs-on: ubuntu-latest
     services:
       sqlserver:
         image: mcr.microsoft.com/mssql/server:2019-latest
-        options: --health-cmd="curl --silent --fail localhost:1433 || exit 1" --health-start-period=60s
+        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{ secrets.SQL_SERVER_PASSWORD }}' -Q 'SELECT 1' || exit 1" --health-start-period=20s
         ports:
           - 14331:1433
         env:
           ACCEPT_EULA: "Y"
           SA_PASSWORD: ${{ secrets.SQL_SERVER_PASSWORD }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -38,7 +36,7 @@ jobs:
       - name: Run tests
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --verbosity normal --configuration Release
         env:
-          CONNECTION_STRING: "Server=localhost,1433;Database=TestDb;User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};"
+          CONNECTION_STRING: "Server=localhost,14331;Database=TestDb;User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;"
 
   analyze:
     runs-on: ubuntu-latest
@@ -63,4 +61,3 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
