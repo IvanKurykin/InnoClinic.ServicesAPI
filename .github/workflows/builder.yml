@@ -64,7 +64,7 @@ jobs:
 
       - name: Run Tests
         env:
-          TEST_DB_CONNECTION_STRING: "Server=sql-server,1433;User Id=sa;Password=My123!Passw0rd123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
+          TEST_DB_CONNECTION_STRING: "Server=sql-server,14335;User Id=sa;Password=My123!Passw0rd123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
           DOTNET_ENVIRONMENT: CI
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal
 
