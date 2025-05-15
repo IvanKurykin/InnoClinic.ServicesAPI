@@ -16,12 +16,12 @@ jobs:
       sql-server:
         image: mcr.microsoft.com/mssql/server:2022-latest
         env:
-          SA_PASSWORD: ${{ secrets.SQL_SERVER_PASSWORD }}
+          SA_PASSWORD: "YourStrong!Passw0rd"
           ACCEPT_EULA: Y
         ports:
           - 14332:1433
         options: >-
-          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{ secrets.SQL_SERVER_PASSWORD }}' -Q 'SELECT 1'" 
+          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'My123!Passw0rd' -Q 'SELECT 1'" 
           --health-interval 10s 
           --health-timeout 5s 
           --health-retries 5
@@ -45,7 +45,7 @@ jobs:
 
       - name: Test
         env:
-          TEST_DB_CONNECTION_STRING: "Server=localhost,14332;User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
+          TEST_DB_CONNECTION_STRING: "Server=localhost,14332;User Id=sa;Password=My123!Passw0rd;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal
 
   analyze:
