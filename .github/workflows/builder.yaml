@@ -57,15 +57,14 @@ jobs:
           echo "port=$PORT" >> $GITHUB_OUTPUT
           
           echo "Waiting for SQL Server to initialize (up to 5 minutes)..."
-          for i in {1..60}; do
+          for i in {1..10}; do
             if docker inspect --format='{{.State.Health.Status}}' mssql-server | grep -q "healthy"; then
               echo "SQL Server is ready!"
-              # Additional check to confirm server is really ready
               if /opt/mssql-tools/bin/sqlcmd -S localhost,$PORT -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1"; then
                 exit 0
               fi
             fi
-            echo "Waiting... ($i/60)"
+            echo "Waiting... ($i/10)"
             sleep 5
           done
           echo "SQL Server did not become ready in time"
@@ -82,37 +81,49 @@ jobs:
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
           curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
           sudo apt-get update
-          sudo apt-get install -y mssql-tools unixodbc-dev
+          sudo apt-get install -y mssql-tools unixodbc-dev jq
           echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> $HOME/.bashrc
           source $HOME/.bashrc
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      - name: Check network configuration
+        run: |
+          echo "Container network details:"
+          docker inspect mssql-server | jq '.[].NetworkSettings'
+          
+          echo "Host network connections:"
+          sudo netstat -tulnp | grep ${{ needs.docker.outputs.port }}
+          
+          echo "Firewall status:"
+          sudo ufw status
       - name: Verify SQL connection
         run: |
-          echo "Container status before connection test:"
-          docker ps -a
-          docker inspect mssql-server
-          docker port mssql-server
+          echo "Checking container network..."
+          docker exec mssql-server /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT @@VERSION"
           
-          echo "Testing connection to SQL Server on port ${{ needs.docker.outputs.port }}..."
-          /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1" -t 60 -l 60
+          echo "Testing external connection on port ${{ needs.docker.outputs.port }}..."
+          for i in {1..10}; do
+            if /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1" -t 5; then
+              echo "Connection successful!"
+              exit 0
+            fi
+            echo "Retrying... ($i/10)"
+            sleep 5
+          done
           
-          if [ $? -ne 0 ]; then
-            echo "Connection failed, showing logs:"
-            docker logs mssql-server
-            echo "Network inspection:"
-            docker network inspect bridge
-            exit 1
-          fi
+          echo "Final connection attempt with full logging:"
+          /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1" -t 30 -l 30 -C -N -P
+          docker logs mssql-server
+          exit 1
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
       - name: Run tests
         env:
-          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ env.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection Timeout=60;"
+          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ env.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection Timeout=60;Pooling=false;"
         run: |
           dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln \
             --no-build \
@@ -151,4 +162,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}ы
+          DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
