@@ -8,6 +8,7 @@ on:
 
 env:
   DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
+  SQL_SERVER_PASSWORD: ${{ secrets.SQL_SERVER_PASSWORD }}
 
 jobs:
   build:
@@ -44,12 +45,28 @@ jobs:
           PORT=$(shuf -i 1500-1600 -n 1)
           docker run -d \
             -e 'ACCEPT_EULA=Y' \
-            -e "SA_PASSWORD=${{ secrets.SQL_SERVER_PASSWORD }}" \
+            -e "SA_PASSWORD=${{ env.SQL_SERVER_PASSWORD }}" \
             -p $PORT:1433 \
             --name mssql-server \
+            --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{ env.SQL_SERVER_PASSWORD }}' -Q 'SELECT 1'" \
+            --health-interval=10s \
+            --health-timeout=5s \
+            --health-retries=20 \
             mcr.microsoft.com/mssql/server:2022-latest
           echo "port=$PORT" >> $GITHUB_OUTPUT
-          sleep 30
+          
+          echo "Waiting for SQL Server to initialize (up to 2 minutes)..."
+          for i in {1..60}; do
+            if docker inspect --format='{{.State.Health.Status}}' mssql-server | grep -q "healthy"; then
+              echo "SQL Server is ready!"
+              exit 0
+            fi
+            echo "Waiting... ($i/60)"
+            sleep 2
+          done
+          echo "SQL Server did not become ready in time"
+          docker logs mssql-server
+          exit 1
 
   test:
     runs-on: ubuntu-latest
@@ -68,26 +85,17 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      - name: Verify SQL connection
+        run: |
+          echo "Testing connection to SQL Server on port ${{ needs.docker.outputs.port }}..."
+          /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1"
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
-      - name: Wait for MSSQL to be ready
-        run: |
-          echo "Waiting for MSSQL on port ${{ needs.docker.outputs.port }}..."
-          for i in {1..30}; do
-            if /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ secrets.SQL_SERVER_PASSWORD }}" -Q "SELECT 1"; then
-              echo "MSSQL is ready!"
-              exit 0
-            fi
-            echo "Attempt $i: MSSQL not ready yet, retrying in 2 seconds..."
-            sleep 2
-          done
-          echo "MSSQL did not become ready in time."
-          exit 1
       - name: Run tests
         env:
-          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;"
+          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ env.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;"
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --logger "trx;LogFileName=test_results.trx" --verbosity detailed
       - name: Upload Test Results
         if: always()
