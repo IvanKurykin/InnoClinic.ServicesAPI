@@ -2,9 +2,11 @@ name: Services API CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -14,9 +16,9 @@ jobs:
       sql-server:
         image: mcr.microsoft.com/mssql/server:2019-CU16-ubuntu-20.04
         env:
-          SA_PASSWORD: "My123!Passw0rd123"
+          SA_PASSWORD: My123!Passw0rd123
           ACCEPT_EULA: Y
-          MSSQL_PID: "Developer"
+          MSSQL_PID: Developer
         ports:
           - 14335:1433
         options: >-
@@ -37,30 +39,22 @@ jobs:
       - name: List running Docker containers (for debug)
         run: docker ps -a
 
-      - name: Show SQL Server logs (if container exists)
-        run: |
-          if docker ps -a --format '{{.Names}}' | grep -q sql_server_container; then
-            echo "Container 'sql_server_container' found:"
-            docker logs sql_server_container
-          else
-            echo "Container 'sql_server_container' not found."
-          fi
-
-      - name: Wait for SQL Server to be healthy
+      - name: Wait for SQL Server health status (via Docker)
         run: |
           for i in {1..30}; do
-            STATUS=$(docker inspect --format='{{.State.Health.Status}}' sql_server_container || echo "none")
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' sql_server_container || echo "not found")
             echo "Current SQL Server health status: $STATUS"
             if [ "$STATUS" == "healthy" ]; then
-              echo "SQL Server is healthy!"
-              break
+              echo SQL Server is healthy!"
+              exit 0
             fi
             sleep 2
           done
 
-      - name: Test direct connection to SQL Server
-        run: |
-          /opt/mssql-tools/bin/sqlcmd -S localhost,14335 -U sa -P "My123!Passw0rd123" -Q "SELECT @@VERSION"
+          echo SQL Server failed to become healthy after 60 seconds."
+          docker inspect sql_server_container || true
+          docker logs sql_server_container || true
+          exit 1
 
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln
