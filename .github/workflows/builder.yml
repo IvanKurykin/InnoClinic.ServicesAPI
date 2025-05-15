@@ -81,7 +81,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Sonar Scan
+        - name: Sonar Scan
         uses: highbyte/sonarscan-dotnet@v2.3.0
         with:
           sonarProjectKey: ${{ secrets.SONAR_PROJECT_KEY }}
@@ -89,7 +89,7 @@ jobs:
           sonarOrganization: ${{ secrets.SONAR_ORGANIZATION }}
           dotnetBuildArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release
           dotnetTestArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-          sonarBeginArguments: >
+          sonarBeginArguments: |
             /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
             /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
             /d:sonar.coverage.exclusions="**/Program.cs,**/DI/*,**/Context/*,**/Services/*,**/Migrations/**"
@@ -98,3 +98,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           DOTNET_ENVIRONMENT: CI
+
