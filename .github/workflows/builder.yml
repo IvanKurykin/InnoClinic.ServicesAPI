@@ -89,7 +89,7 @@ jobs:
           sonarOrganization: ${{ secrets.SONAR_ORGANIZATION }}
           dotnetBuildArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release
           dotnetTestArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-          sonarBeginArguments: |
+          sonarBeginArguments: >-
             /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
             /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
             /d:sonar.coverage.exclusions="**/Program.cs,**/DI/*,**/Context/*,**/Services/*,**/Migrations/**"
