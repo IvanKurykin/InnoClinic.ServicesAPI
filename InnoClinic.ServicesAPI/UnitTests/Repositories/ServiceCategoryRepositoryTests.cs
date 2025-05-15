@@ -89,7 +89,8 @@ public class ServiceCategoryRepositoryTests
     [Fact]
     public async Task GetWithDependenciesAsyncShouldReturnCategoryWithRelatedServices()
     {
-        using var connection = new SqlConnection(ServiceCategoryRepositoryTestConstants.ConnectionString);
+        using var connection = new SqlConnection(TestConfiguration.ConnectionString);
+
         await connection.OpenAsync();
 
         await connection.ExecuteAsync(ServiceCategoryRepositoryTestConstants.CheckDbExistsSql);
@@ -137,7 +138,8 @@ public class ServiceCategoryRepositoryTests
     [Fact]
     public async Task GetAllWithDependenciesAsyncShouldReturnCategoriesWithRelatedServices()
     {
-        using var connection = new SqlConnection(ServiceCategoryRepositoryTestConstants.ConnectionString);
+        using var connection = new SqlConnection(TestConfiguration.ConnectionString);
+
         await connection.OpenAsync();
 
         await connection.ExecuteAsync(ServiceCategoryRepositoryTestConstants.CheckDbExistsSql);

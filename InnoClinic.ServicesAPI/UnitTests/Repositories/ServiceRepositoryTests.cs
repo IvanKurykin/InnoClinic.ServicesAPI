@@ -101,7 +101,8 @@ public class ServiceRepositoryTests
     [Fact]
     public async Task GetWithDependenciesAsyncShouldReturnServiceWithRelatedCategoryAndSpecialization()
     {
-        using var connection = new SqlConnection(ServiceRepositoryTestConstants.ConnectionString);
+        using var connection = new SqlConnection(TestConfiguration.ConnectionString);
+
         await connection.OpenAsync();
 
         await connection.ExecuteAsync(ServiceRepositoryTestConstants.CheckDbExistsSql);
@@ -157,7 +158,8 @@ public class ServiceRepositoryTests
     [Fact]
     public async Task GetAllWithDependenciesAsyncShouldReturnServicesWithRelatedCategoriesAndSpecializations()
     {
-        using var connection = new SqlConnection(ServiceRepositoryTestConstants.ConnectionString);
+        using var connection = new SqlConnection(TestConfiguration.ConnectionString);
+
         await connection.OpenAsync();
 
         await connection.ExecuteAsync(ServiceRepositoryTestConstants.CheckDbExistsSql);

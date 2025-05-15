@@ -16,7 +16,7 @@ jobs:
       sql-server:
         image: mcr.microsoft.com/mssql/server:2022-latest
         env:
-          SA_PASSWORD: "YourStrong!Passw0rd123"
+          SA_PASSWORD: "My123!Passw0rd123"
           ACCEPT_EULA: Y
           MSSQL_PID: "Developer"
         ports:
@@ -39,9 +39,10 @@ jobs:
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
 
-      - name: Test
+      - name: Run Tests
         env:
-          TEST_DB_CONNECTION_STRING: "Server=localhost,14334;User Id=sa;Password=YourStrong!Passw0rd123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
+          TEST_DB_CONNECTION_STRING: "Server=localhost,14334;User Id=sa;Password=My123!Passw0rd123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
+          DOTNET_ENVIRONMENT: CI
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal
 
   analyze:
@@ -70,3 +71,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          DOTNET_ENVIRONMENT: CI

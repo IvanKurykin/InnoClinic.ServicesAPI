@@ -98,7 +98,8 @@ namespace UnitTests.Repositories
         [Fact]
         public async Task GetWithDependenciesAsyncShouldReturnSpecializationWithRelatedServices()
         {
-            using var connection = new SqlConnection(SpecializationRepositoryTestConstants.ConnectionString);
+            using var connection = new SqlConnection(TestConfiguration.ConnectionString);
+
             await connection.OpenAsync();
 
             await connection.ExecuteAsync(SpecializationRepositoryTestConstants.CheckDbExistsSql);
@@ -151,7 +152,8 @@ namespace UnitTests.Repositories
         [Fact]
         public async Task GetAllWithDependenciesAsyncShouldReturnSpecializationsWithRelatedServices()
         {
-            using var connection = new SqlConnection(SpecializationRepositoryTestConstants.ConnectionString);
+            using var connection = new SqlConnection(TestConfiguration.ConnectionString);
+
             await connection.OpenAsync();
 
             await connection.ExecuteAsync(SpecializationRepositoryTestConstants.CheckDbExistsSql);
