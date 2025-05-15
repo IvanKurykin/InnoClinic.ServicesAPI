@@ -14,13 +14,13 @@ jobs:
 
     services:
       sql-server:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+        image: image: mcr.microsoft.com/mssql/server:2019-CU16-ubuntu-20.04
         env:
           SA_PASSWORD: "My123!Passw0rd123"
           ACCEPT_EULA: Y
           MSSQL_PID: "Developer"
         ports:
-          - 14334:1433
+          - 14335:1433
         options: >-
           --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P My123!Passw0rd123 -Q 'SELECT 1'"
           --health-interval 10s
@@ -44,7 +44,7 @@ jobs:
       - name: Wait for SQL Server to be ready
         run: |
           for i in {1..30}; do
-            if /opt/mssql-tools/bin/sqlcmd -S localhost,14334 -U sa -P "My123!Passw0rd123" -Q "SELECT 1" > /dev/null 2>&1; then
+            if /opt/mssql-tools/bin/sqlcmd -S localhost,14335 -U sa -P "My123!Passw0rd123" -Q "SELECT 1" > /dev/null 2>&1; then
               echo "SQL Server is up!";
               break;
             else
@@ -61,7 +61,7 @@ jobs:
 
       - name: Run Tests
         env:
-          TEST_DB_CONNECTION_STRING: "Server=localhost,14334;User Id=sa;Password=My123!Passw0rd123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
+          TEST_DB_CONNECTION_STRING: "Server=localhost,14335;User Id=sa;Password=My123!Passw0rd123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
           DOTNET_ENVIRONMENT: CI
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal
 
