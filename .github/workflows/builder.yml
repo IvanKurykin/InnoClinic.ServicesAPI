@@ -81,7 +81,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-        - name: Sonar Scan
+      - name: Sonar Scan
         uses: highbyte/sonarscan-dotnet@v2.3.0
         with:
           sonarProjectKey: ${{ secrets.SONAR_PROJECT_KEY }}
@@ -98,4 +98,3 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           DOTNET_ENVIRONMENT: CI
-
