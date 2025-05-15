@@ -48,21 +48,22 @@ jobs:
             -e "SA_PASSWORD=${{ env.SQL_SERVER_PASSWORD }}" \
             -p $PORT:1433 \
             --name mssql-server \
-            --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"\$SA_PASSWORD\" -Q 'SELECT 1'" \
-            --health-interval=5s \
-            --health-timeout=5s \
+            --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"\$SA_PASSWORD\" -Q 'SELECT 1' || exit 1" \
+            --health-interval=10s \
+            --health-timeout=10s \
             --health-retries=30 \
+            --health-start-period=30s \
             mcr.microsoft.com/mssql/server:2022-latest
           echo "port=$PORT" >> $GITHUB_OUTPUT
           
-          echo "Waiting for SQL Server to initialize (up to 3 minutes)..."
-          for i in {1..90}; do
+          echo "Waiting for SQL Server to initialize (up to 5 minutes)..."
+          for i in {1..60}; do
             if docker inspect --format='{{.State.Health.Status}}' mssql-server | grep -q "healthy"; then
               echo "SQL Server is ready!"
               exit 0
             fi
-            echo "Waiting... ($i/90)"
-            sleep 2
+            echo "Waiting... ($i/60)"
+            sleep 5
           done
           echo "SQL Server did not become ready in time"
           docker logs mssql-server
@@ -87,16 +88,33 @@ jobs:
           dotnet-version: 8.0.x
       - name: Verify SQL connection
         run: |
+          echo "Container status before connection test:"
+          docker ps -a
+          docker inspect mssql-server
+          
           echo "Testing connection to SQL Server on port ${{ needs.docker.outputs.port }}..."
-          /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1"
+          /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1" -t 30 -l 30
+          
+          if [ $? -ne 0 ]; then
+            echo "Connection failed, showing logs:"
+            docker logs mssql-server
+            exit 1
+          fi
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
       - name: Run tests
         env:
-          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ env.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;"
-        run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --logger "trx;LogFileName=test_results.trx" --verbosity detailed
+          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ env.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;"
+        run: |
+          dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln \
+            --no-build \
+            --configuration Release \
+            --logger "trx;LogFileName=test_results.trx" \
+            --verbosity detailed \
+            --blame-hang \
+            --blame-hang-timeout 5m
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
