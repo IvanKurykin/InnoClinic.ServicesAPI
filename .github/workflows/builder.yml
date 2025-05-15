@@ -36,6 +36,12 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Download wait-for-it
+        run: curl -o wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && chmod +x wait-for-it.sh
+
+      - name: Wait for SQL Server
+        run: ./wait-for-it.sh localhost:14335 -t 30
+
       - name: List running Docker containers (for debug)
         run: docker ps -a
 
@@ -64,7 +70,7 @@ jobs:
 
       - name: Run Tests
         env:
-          TEST_DB_CONNECTION_STRING: "Server=sql-server,14335;User Id=sa;Password=My123!Passw0rd123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
+          TEST_DB_CONNECTION_STRING: "Server=localhost,14335;User Id=sa;Password=My123!Passw0rd123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
           DOTNET_ENVIRONMENT: CI
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal
 
