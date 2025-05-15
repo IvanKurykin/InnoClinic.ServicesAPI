@@ -1,4 +1,4 @@
-name: Services API Build Only
+name: Services API CI
 
 on:
   push:
@@ -25,3 +25,33 @@ jobs:
 
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal
+
+  analyze:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Sonar Scan
+        uses: highbyte/sonarscan-dotnet@v2.3.0
+        with:
+          sonarProjectKey: ${{ secrets.SONAR_PROJECT_KEY }}
+          sonarProjectName: ${{ secrets.SONAR_PROJECT_NAME }}
+          sonarOrganization: ${{ secrets.SONAR_ORGANIZATION }}
+          dotnetBuildArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release
+          dotnetTestArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+          sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" /d:sonar.coverage.exclusions="**/Program.cs,**/DI/*,**/Context/*,**/Services/*,**/Migrations/**" /d:sonar.exclusions="**/Migrations/**"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
