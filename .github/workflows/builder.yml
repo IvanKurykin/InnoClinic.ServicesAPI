@@ -21,6 +21,11 @@ jobs:
           MSSQL_PID: "Developer"
         ports:
           - 14334:1433
+        options: >-
+          --health-cmd "echo 'SELECT 1' | /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'My123!Passw0rd123' -Q 'SELECT 1'" 
+          --health-interval 5s 
+          --health-timeout 2s 
+          --health-retries 20
 
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +36,16 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Wait for SQL Server to be ready
-        run: sleep 20
+        run: |
+          for i in {1..30}; do
+            if /opt/mssql-tools/bin/sqlcmd -S localhost,14334 -U sa -P "My123!Passw0rd123" -Q "SELECT 1" > /dev/null 2>&1; then
+              echo "SQL Server is up!";
+              break;
+            else
+              echo "Waiting for SQL Server... ($i)";
+              sleep 2;
+            fi
+          done
 
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln
