@@ -14,7 +14,7 @@ jobs:
 
     services:
       sql-server:
-        image: image: mcr.microsoft.com/mssql/server:2019-CU16-ubuntu-20.04
+        image: mcr.microsoft.com/mssql/server:2019-CU16-ubuntu-20.04
         env:
           SA_PASSWORD: "My123!Passw0rd123"
           ACCEPT_EULA: Y
