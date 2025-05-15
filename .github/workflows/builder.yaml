@@ -45,7 +45,7 @@ jobs:
             -p $PORT:1433 \
             --name mssql-server \
             mcr.microsoft.com/mssql/server:2022-latest
-          echo "::set-output name=port::$PORT"
+          echo "port=$PORT" >> $GITHUB_OUTPUT
           sleep 30
 
   test:
@@ -70,7 +70,7 @@ jobs:
         run: |
           echo "Waiting for MSSQL on port ${{ needs.docker.outputs.port }}..."
           for i in {1..30}; do
-            /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P ${{ secrets.SQL_SERVER_PASSWORD }} -Q "SELECT 1"
+            /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ secrets.SQL_SERVER_PASSWORD }}" -Q "SELECT 1"
             if [ $? -eq 0 ]; then
               echo "MSSQL is ready!"
               exit 0
@@ -80,11 +80,6 @@ jobs:
           done
           echo "MSSQL did not become ready in time."
           exit 1
-
-      - name: Show connection string
-        env:
-          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;"
-        run: echo "Using connection string: $TEST_DB_CONNECTION_STRING"
 
       - name: Run tests
         env:
@@ -111,9 +106,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore dependencies
-        run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
-
       - name: Sonar Scan
         uses: highbyte/sonarscan-dotnet@v2.3.0
         with:
@@ -122,11 +114,7 @@ jobs:
           sonarOrganization: ${{ secrets.SONAR_ORGANIZATION }}
           dotnetBuildArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release
           dotnetTestArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-          sonarBeginArguments: |
-            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
-            /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
-            /d:sonar.coverage.exclusions="**/Program.cs,**/DI/*,**/Context/*,**/Services/*,**/Migrations/**"
-            /d:sonar.exclusions="**/Migrations/**"
+          sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" /d:sonar.coverage.exclusions="**/Program.cs,**/DI/*,**/Context/*,**/Services/*,**/Migrations/**" /d:sonar.exclusions="**/Migrations/**"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
