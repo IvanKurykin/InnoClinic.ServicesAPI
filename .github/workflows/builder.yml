@@ -22,7 +22,7 @@ jobs:
         ports:
           - 14334:1433
         options: >-
-          --health-cmd "exit 0"
+          --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P My123!Passw0rd123 -Q 'SELECT 1'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -34,6 +34,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
+      - name: List running Docker containers (for debug)
+        run: docker ps -a
+
+      - name: Show SQL Server logs (for debug)
+        run: docker logs $(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server)
 
       - name: Wait for SQL Server to be ready
         run: |
