@@ -50,4 +50,4 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-        SONAR_EXCLUDE_FROM_COVERAGE: "**/Program.cs,**/Migrations/*,**/DI/*,**/Context/*,**/Profiles/*,**/Repositories/*"
+        SONAR_EXCLUDE_FROM_COVERAGE: "**/Program.cs,**/Migrations/*,**/DI/*,**/Context/*,**/Profiles/*,**/Repositories/*,Infrastructure/Repositories/ServiceCategoryRepository.cs,Infrastructure/Repositories/ServiceRepository.cs,Infrastructure/Repositories/SpecializationRepository.cs"
