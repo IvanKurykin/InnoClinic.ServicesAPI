@@ -2,19 +2,19 @@
 
 public static class ServiceSqlBuilder
 {
-    public static string GetAllWithDependencies() =>
+    public const string GetAllWithDependencies =
         @"SELECT s.*, c.*, sp.*
           FROM Services s
           JOIN ServiceCategories c ON s.CategoryId = c.Id
           JOIN Specializations sp ON s.SpecializationId = sp.Id";
 
-    public static string GetByIdWithDependencies() =>
+    public const string GetByIdWithDependencies =
        @"SELECT s.*, c.*, sp.*
           FROM Services s
           JOIN ServiceCategories c ON s.CategoryId = c.Id
           JOIN Specializations sp ON s.SpecializationId = sp.Id
           WHERE s.Id = @Id";
 
-    public static string Delete() =>
+    public const string Delete =
         "DELETE FROM Services WHERE Id = @Id;";
 }

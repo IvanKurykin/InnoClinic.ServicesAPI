@@ -36,7 +36,7 @@ public class SpecializationController(ISpecializationService specializationServi
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id}")]
     public async Task<ActionResult<SpecializationResponseDto?>> GetSpecializationByIdAsync([FromRoute] Guid id, CancellationToken cancellationToken) =>
-        await specializationService.GetByIdAsync(id, cancellationToken);
+        Ok(await specializationService.GetByIdAsync(id, cancellationToken));
 
     [ProducesResponseType(StatusCodes.Status200OK)]
     [HttpGet]

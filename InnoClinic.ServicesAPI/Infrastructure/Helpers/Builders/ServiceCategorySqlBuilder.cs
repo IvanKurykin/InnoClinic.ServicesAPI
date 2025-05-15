@@ -1,19 +1,19 @@
 namespace Infrastructure.Helpers.Builders;
 
-public class ServiceCategorySqlBuilder
+public static class ServiceCategorySqlBuilder
 {
-    public static string GetAllWithDependencies() =>
+    public const string GetAllWithDependencies =
        @"SELECT c.*, s.*
           FROM ServiceCategories c
           LEFT JOIN Services s ON s.CategoryId = c.Id";
 
-    public static string GetByIdWithDependencies() =>
+    public const string GetByIdWithDependencies =
         @"SELECT c.*, s.*
           FROM ServiceCategories c
           LEFT JOIN Services s ON s.CategoryId = c.Id
           WHERE c.Id = @Id";
 
-    public static string Delete() =>
+    public const string Delete =
         @"DELETE FROM Services WHERE CategoryId = @Id;
           DELETE FROM ServiceCategories WHERE Id = @Id;";
 }
