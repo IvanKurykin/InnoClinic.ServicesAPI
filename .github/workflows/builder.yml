@@ -17,7 +17,7 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2019-CU16-ubuntu-20.04
         env:
           SA_PASSWORD: "My123!Passw0rd123"
-          ACCEPT_EULA: Y
+          ACCEPT_EULA: "Y"
           MSSQL_PID: "Developer"
         ports:
           - 14335:1433
@@ -25,7 +25,7 @@ jobs:
           --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P My123!Passw0rd123 -Q 'SELECT 1'"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
     steps:
       - uses: actions/checkout@v4
@@ -35,12 +35,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: List running Docker containers (for debug)
-        run: docker ps -a
-
-      - name: Show SQL Server logs (for debug)
-        run: docker logs $(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server)
-
       - name: Wait for SQL Server to be ready
         run: |
           for i in {1..30}; do
@@ -48,7 +42,7 @@ jobs:
               echo "SQL Server is up!";
               break;
             else
-              echo "Waiting for SQL Server... ($i)";
+              echo "Waiting for SQL Server... ($i/30)";
               sleep 2;
             fi
           done
