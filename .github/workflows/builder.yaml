@@ -15,12 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+          
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
+          
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
 
@@ -31,6 +34,7 @@ jobs:
       port: ${{ steps.start-mssql.outputs.port }}
     steps:
       - uses: actions/checkout@v4
+      
       - name: Install SQL Server tools
         run: |
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
@@ -39,6 +43,7 @@ jobs:
           sudo apt-get install -y mssql-tools unixodbc-dev
           echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> $HOME/.bashrc
           source $HOME/.bashrc
+          
       - name: Run MSSQL Docker container
         id: start-mssql
         run: |
@@ -50,21 +55,24 @@ jobs:
             --name mssql-server \
             --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{ env.SQL_SERVER_PASSWORD }}' -Q 'SELECT 1'" \
             --health-interval=10s \
-            --health-timeout=5s \
-            --health-retries=20 \
+            --health-timeout=10s \
+            --health-retries=30 \
             mcr.microsoft.com/mssql/server:2022-latest
-          echo "port=$PORT" >> $GITHUB_OUTPUT
           
-          echo "Waiting for SQL Server to initialize (up to 2 minutes)..."
+          echo "port=$PORT" >> $GITHUB_OUTPUT
+          echo "Wait for SQL Server initialisation (up to 5 minutes)..."
+          
           for i in {1..60}; do
             if docker inspect --format='{{.State.Health.Status}}' mssql-server | grep -q "healthy"; then
-              echo "SQL Server is ready!"
+              echo "SQL Server готов!"
+              /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1"
               exit 0
             fi
             echo "Waiting... ($i/60)"
-            sleep 2
+            sleep 5
           done
-          echo "SQL Server did not become ready in time"
+          
+          echo "SQL Server did not start in the allotted time"
           docker logs mssql-server
           exit 1
 
@@ -73,6 +81,7 @@ jobs:
     needs: docker
     steps:
       - uses: actions/checkout@v4
+      
       - name: Install SQL Server tools
         run: |
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
@@ -81,22 +90,39 @@ jobs:
           sudo apt-get install -y mssql-tools unixodbc-dev
           echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> $HOME/.bashrc
           source $HOME/.bashrc
+          
+      - name: Wait for SQL Server to be ready
+        run: |
+          echo "Additional waiting time before tests..."
+          sleep 30
+          
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+          
       - name: Verify SQL connection
         run: |
-          echo "Testing connection to SQL Server on port ${{ needs.docker.outputs.port }}..."
-          /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1"
+          echo "Checking connection to SQL Server on a port ${{ needs.docker.outputs.port }}..."
+          /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1" -t 30
+          
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
+          
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
+          
       - name: Run tests
         env:
           TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ env.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;"
-        run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --logger "trx;LogFileName=test_results.trx" --verbosity detailed
+        run: |
+          dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln \
+            --no-build \
+            --configuration Release \
+            --logger "trx;LogFileName=test_results.trx" \
+            --verbosity detailed \
+            --blame-hangent
+          
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
@@ -111,10 +137,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+          
       - name: Sonar Scan
         uses: highbyte/sonarscan-dotnet@v2.3.0
         with:
@@ -122,7 +150,7 @@ jobs:
           sonarProjectName: ${{ secrets.SONAR_PROJECT_NAME }}
           sonarOrganization: ${{ secrets.SONAR_ORGANIZATION }}
           dotnetBuildArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release
-          dotnetTestArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+          dotnetTestArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
           sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" /d:sonar.coverage.exclusions="**/Program.cs,**/DI/*,**/Context/*,**/Services/*,**/Migrations/**" /d:sonar.exclusions="**/Migrations/**"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

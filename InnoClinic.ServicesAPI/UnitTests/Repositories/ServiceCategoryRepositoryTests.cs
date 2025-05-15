@@ -196,7 +196,6 @@ public class ServiceCategoryRepositoryTests
 
         await connection.ExecuteAsync(ServiceCategoryRepositoryTestConstants.CloseConnectionsSql);
         await connection.CloseAsync();
-
         await connection.ExecuteAsync(ServiceCategoryRepositoryTestConstants.DropDbSql);
     }
 
