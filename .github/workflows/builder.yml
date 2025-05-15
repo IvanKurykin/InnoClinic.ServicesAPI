@@ -24,7 +24,8 @@ jobs:
           ACCEPT_EULA: Y
         ports:
           - 14332:1433
-        options: --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{
+        options: >
+          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{
           secrets.SQL_SERVER_PASSWORD }}' -Q 'SELECT 1' || exit 1"
           --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
@@ -75,4 +76,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
-          TEST_DB_CONNECTION_STRING: ${{ secrets.TEST_DB_CONNECTION_STRING }}
+          TEST_DB_CONNECTION_STRING: ${{ env.TEST_DB_CONNECTION_STRING }}
