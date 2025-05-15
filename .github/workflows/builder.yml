@@ -38,8 +38,15 @@ jobs:
       - name: List running Docker containers (for debug)
         run: docker ps -a
 
-      - name: Show SQL Server logs (for debug)
-        run: docker logs $(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server)
+      - name: Show SQL Server logs (if container exists)
+        run: |
+          CONTAINER_ID=$(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server)
+          if [ -n "$CONTAINER_ID" ]; then
+            echo "Container found: $CONTAINER_ID"
+            docker logs "$CONTAINER_ID"
+          else
+            echo "No container found with ancestor 'mcr.microsoft.com/mssql/server'"
+          fi
 
       - name: Wait for SQL Server health status (via Docker)
         run: |
