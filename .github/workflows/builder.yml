@@ -1,5 +1,5 @@
+---
 name: Services API CI
-
 on:
   push:
     branches:
@@ -7,46 +7,38 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    services:
-      sql-server:
-        image: mcr.microsoft.com/mssql/server:2019-CU16-ubuntu-20.04
-        env:
-          SA_PASSWORD: "My123!Passw0rd123"
-          ACCEPT_EULA: Y
-          MSSQL_PID: "Developer"
-        ports:
-          - 14335:1433
-        options: >-
-          --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P My123!Passw0rd123 -Q 'SELECT 1'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+    services: null
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2019-CU16-ubuntu-20.04
+    env:
+      SA_PASSWORD: My123!Passw0rd123
+      ACCEPT_EULA: Y
+      MSSQL_PID: Developer
+    ports:
+      - 14335:1433
+    options: --name sql_server_container --health-cmd "/opt/mssql-tools/bin/sqlcmd
+      -U sa -P My123!Passw0rd123 -Q 'SELECT 1'" --health-interval 10s
+      --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-
       - name: List running Docker containers (for debug)
         run: docker ps -a
-
       - name: Show SQL Server logs (if container exists)
-        run: |
-          CONTAINER_ID=$(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server)
-          if [ -n "$CONTAINER_ID" ]; then
-            echo "Container found: $CONTAINER_ID"
-            docker logs "$CONTAINER_ID"
-          else
-            echo "No container found with ancestor 'mcr.microsoft.com/mssql/server'"
-          fi
+  run: >
+    if docker ps -a --format '{{.Names}}' | grep -q sql_server_container; then
+      echo "Container 'sql_server_container' found:"
+      docker logs sql_server_container
+    else
+      echo "❌ Container 'sql_server_container' not found."
+    fi
+
 
       - name: Wait for SQL Server health status (via Docker)
         run: |
@@ -85,30 +77,33 @@ jobs:
           TEST_DB_CONNECTION_STRING: "Server=localhost,14335;User Id=sa;Password=My123!Passw0rd123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true;"
           DOTNET_ENVIRONMENT: CI
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal
-
   analyze:
     runs-on: ubuntu-latest
     needs: build
-
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-
       - name: Sonar Scan
         uses: highbyte/sonarscan-dotnet@v2.3.0
         with:
           sonarProjectKey: ${{ secrets.SONAR_PROJECT_KEY }}
           sonarProjectName: ${{ secrets.SONAR_PROJECT_NAME }}
           sonarOrganization: ${{ secrets.SONAR_ORGANIZATION }}
-          dotnetBuildArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release
-          dotnetTestArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-          sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" /d:sonar.coverage.exclusions="**/Program.cs,**/DI/*,**/Context/*,**/Services/*,**/Migrations/**" /d:sonar.exclusions="**/Migrations/**"
+          dotnetBuildArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln
+            --configuration Release
+          dotnetTestArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln
+            --no-build --configuration Release --verbosity normal --logger trx
+            --collect:"XPlat Code Coverage" --
+            DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+          sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
+            /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
+            /d:sonar.coverage.exclusions="**/Program.cs,**/DI/*,**/Context/*,**/Services/*,**/Migrations/**"
+            /d:sonar.exclusions="**/Migrations/**"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
