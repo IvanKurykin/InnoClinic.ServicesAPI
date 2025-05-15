@@ -1,21 +1,17 @@
----
 name: Services API CI
+
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+
+env:
+  SQL_SERVER_PORT: 14332
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      SQL_SERVER_PORT: 14332
-      TEST_DB_CONNECTION_STRING: Server=localhost,14332;User Id=sa;Password=${{
-        secrets.SQL_SERVER_PASSWORD
-        }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection
-        Timeout=60;Pooling=false;
     services:
       sql-server:
         image: mcr.microsoft.com/mssql/server:2022-latest
@@ -23,11 +19,12 @@ jobs:
           SA_PASSWORD: ${{ secrets.SQL_SERVER_PASSWORD }}
           ACCEPT_EULA: Y
         ports:
-          - 14332:1433
-        options: >
-          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{
-          secrets.SQL_SERVER_PASSWORD }}' -Q 'SELECT 1' || exit 1"
-          --health-interval 10s --health-timeout 5s --health-retries 5
+          - ${{ env.SQL_SERVER_PORT }}:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{ secrets.SQL_SERVER_PASSWORD }}' -Q 'SELECT 1' || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET 8
@@ -35,27 +32,19 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: Wait for SQL Server
-        run: sleep 15
+        run: sleep 20
       - name: Restore dependencies
-        run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln
-          -p:Configuration=Release
+        run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
       - name: Build
-        run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln
-          --configuration Release --no-restore
+        run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
       - name: Test
-        run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build
-          --verbosity normal --configuration Release
+        env:
+          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ env.SQL_SERVER_PORT }};User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection Timeout=60;Pooling=false;"
+        run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --verbosity normal --configuration Release
+
   analyze:
     runs-on: ubuntu-latest
     needs: build
-    env:
-      TEST_DB_CONNECTION_STRING: Server=localhost,14332;User Id=sa;Password=${{
-        secrets.SQL_SERVER_PASSWORD
-        }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection
-        Timeout=60;Pooling=false;
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,21 +55,15 @@ jobs:
           dotnet-version: 8.0.x
       - name: Sonar Scan
         uses: highbyte/sonarscan-dotnet@v2.3.0
+        env:
+          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ env.SQL_SERVER_PORT }};User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection Timeout=60;Pooling=false;"
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
         with:
           sonarProjectKey: ${{ secrets.SONAR_PROJECT_KEY }}
           sonarProjectName: ${{ secrets.SONAR_PROJECT_NAME }}
           sonarOrganization: ${{ secrets.SONAR_ORGANIZATION }}
-          dotnetBuildArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln
-            --configuration Release
-          dotnetTestArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln
-            --no-build --configuration Release --verbosity normal --logger trx
-            --collect:"XPlat Code Coverage" --
-            DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-          sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
-            /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
-            /d:sonar.coverage.exclusions="**/Program.cs,**/DI/*,**/Context/*,**/Services/*,**/Migrations/**"
-            /d:sonar.exclusions="**/Migrations/**"
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
+          dotnetBuildArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release
+          dotnetTestArguments: InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+          sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" /d:sonar.coverage.exclusions="**/Program.cs,**/DI/*,**/Context/*,**/Services/*,**/Migrations/**" /d:sonar.exclusions="**/Migrations/**"
