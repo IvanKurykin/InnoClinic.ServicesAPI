@@ -14,15 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
-
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
 
@@ -33,7 +30,14 @@ jobs:
       port: ${{ steps.start-mssql.outputs.port }}
     steps:
       - uses: actions/checkout@v4
-
+      - name: Install SQL Server tools
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo apt-get install -y mssql-tools unixodbc-dev
+          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> $HOME/.bashrc
+          source $HOME/.bashrc
       - name: Run MSSQL Docker container
         id: start-mssql
         run: |
@@ -52,24 +56,27 @@ jobs:
     needs: docker
     steps:
       - uses: actions/checkout@v4
-
+      - name: Install SQL Server tools
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo apt-get install -y mssql-tools unixodbc-dev
+          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> $HOME/.bashrc
+          source $HOME/.bashrc
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln -p:Configuration=Release
-
       - name: Build
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
-
       - name: Wait for MSSQL to be ready
         run: |
           echo "Waiting for MSSQL on port ${{ needs.docker.outputs.port }}..."
           for i in {1..30}; do
-            /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ secrets.SQL_SERVER_PASSWORD }}" -Q "SELECT 1"
-            if [ $? -eq 0 ]; then
+            if /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ secrets.SQL_SERVER_PASSWORD }}" -Q "SELECT 1"; then
               echo "MSSQL is ready!"
               exit 0
             fi
@@ -78,12 +85,10 @@ jobs:
           done
           echo "MSSQL did not become ready in time."
           exit 1
-
       - name: Run tests
         env:
           TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;"
         run: dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --no-build --configuration Release --logger "trx;LogFileName=test_results.trx" --verbosity detailed
-
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
@@ -98,18 +103,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-
-      - name: Download test results
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-          path: TestResults
-
       - name: Sonar Scan
         uses: highbyte/sonarscan-dotnet@v2.3.0
         with:
