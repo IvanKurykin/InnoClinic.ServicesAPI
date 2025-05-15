@@ -7,15 +7,15 @@ on:
   pull_request:
     branches:
       - main
-env:
-  SQL_SERVER_PORT: 14332
-  TEST_DB_CONNECTION_STRING: Server=localhost,14332;User Id=sa;Password=${{
-    secrets.SQL_SERVER_PASSWORD
-    }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection
-    Timeout=60;Pooling=false;
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SQL_SERVER_PORT: 14332
+      TEST_DB_CONNECTION_STRING: Server=localhost,14332;User Id=sa;Password=${{
+        secrets.SQL_SERVER_PASSWORD
+        }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection
+        Timeout=60;Pooling=false;
     services:
       sql-server:
         image: mcr.microsoft.com/mssql/server:2022-latest
@@ -48,6 +48,14 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     needs: build
+    env:
+      TEST_DB_CONNECTION_STRING: Server=localhost,14332;User Id=sa;Password=${{
+        secrets.SQL_SERVER_PASSWORD
+        }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection
+        Timeout=60;Pooling=false;
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,4 +84,3 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
-          TEST_DB_CONNECTION_STRING: ${{ env.TEST_DB_CONNECTION_STRING }}
