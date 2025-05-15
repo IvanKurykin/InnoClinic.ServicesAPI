@@ -60,7 +60,10 @@ jobs:
           for i in {1..60}; do
             if docker inspect --format='{{.State.Health.Status}}' mssql-server | grep -q "healthy"; then
               echo "SQL Server is ready!"
-              exit 0
+              # Additional check to confirm server is really ready
+              if /opt/mssql-tools/bin/sqlcmd -S localhost,$PORT -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1"; then
+                exit 0
+              fi
             fi
             echo "Waiting... ($i/60)"
             sleep 5
@@ -91,13 +94,16 @@ jobs:
           echo "Container status before connection test:"
           docker ps -a
           docker inspect mssql-server
+          docker port mssql-server
           
           echo "Testing connection to SQL Server on port ${{ needs.docker.outputs.port }}..."
-          /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1" -t 30 -l 30
+          /opt/mssql-tools/bin/sqlcmd -S localhost,${{ needs.docker.outputs.port }} -U sa -P "${{ env.SQL_SERVER_PASSWORD }}" -Q "SELECT 1" -t 60 -l 60
           
           if [ $? -ne 0 ]; then
             echo "Connection failed, showing logs:"
             docker logs mssql-server
+            echo "Network inspection:"
+            docker network inspect bridge
             exit 1
           fi
       - name: Restore dependencies
@@ -106,7 +112,7 @@ jobs:
         run: dotnet build InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln --configuration Release --no-restore
       - name: Run tests
         env:
-          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ env.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;"
+          TEST_DB_CONNECTION_STRING: "Server=localhost,${{ needs.docker.outputs.port }};User Id=sa;Password=${{ env.SQL_SERVER_PASSWORD }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection Timeout=60;"
         run: |
           dotnet test InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln \
             --no-build \
@@ -145,4 +151,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
+          DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}ы
