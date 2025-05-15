@@ -17,7 +17,7 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2019-CU16-ubuntu-20.04
         env:
           SA_PASSWORD: "My123!Passw0rd123"
-          ACCEPT_EULA: "Y"
+          ACCEPT_EULA: Y
           MSSQL_PID: "Developer"
         ports:
           - 14335:1433
@@ -25,7 +25,7 @@ jobs:
           --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P My123!Passw0rd123 -Q 'SELECT 1'"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 10
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -35,17 +35,37 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Wait for SQL Server to be ready
+      - name: List running Docker containers (for debug)
+        run: docker ps -a
+
+      - name: Show SQL Server logs (for debug)
+        run: docker logs $(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server)
+
+      - name: Wait for SQL Server health status (via Docker)
         run: |
+          CONTAINER_ID=$(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server)
           for i in {1..30}; do
-            if /opt/mssql-tools/bin/sqlcmd -S localhost,14335 -U sa -P "My123!Passw0rd123" -Q "SELECT 1" > /dev/null 2>&1; then
-              echo "SQL Server is up!";
-              break;
-            else
-              echo "Waiting for SQL Server... ($i/30)";
-              sleep 2;
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$CONTAINER_ID")
+            echo "Current SQL Server health status: $STATUS"
+            if [ "$STATUS" == "healthy" ]; then
+              echo "SQL Server is healthy!"
+              exit 0
             fi
+            sleep 2
           done
+
+          echo "SQL Server failed to become healthy after 60 seconds."
+          echo "Docker Inspect Output:"
+          docker inspect "$CONTAINER_ID"
+
+          echo "Docker Logs:"
+          docker logs "$CONTAINER_ID"
+
+          exit 1
+
+      - name: Test connection to SQL Server
+        run: |
+          /opt/mssql-tools/bin/sqlcmd -S localhost,14335 -U sa -P "My123!Passw0rd123" -Q "SELECT @@VERSION"
 
       - name: Restore dependencies
         run: dotnet restore InnoClinic.ServicesAPI/InnoClinic.ServicesAPI.sln
