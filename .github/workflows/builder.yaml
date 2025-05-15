@@ -48,20 +48,20 @@ jobs:
             -e "SA_PASSWORD=${{ env.SQL_SERVER_PASSWORD }}" \
             -p $PORT:1433 \
             --name mssql-server \
-            --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${{ env.SQL_SERVER_PASSWORD }}' -Q 'SELECT 1'" \
-            --health-interval=10s \
+            --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"\$SA_PASSWORD\" -Q 'SELECT 1'" \
+            --health-interval=5s \
             --health-timeout=5s \
-            --health-retries=20 \
+            --health-retries=30 \
             mcr.microsoft.com/mssql/server:2022-latest
           echo "port=$PORT" >> $GITHUB_OUTPUT
           
-          echo "Waiting for SQL Server to initialize (up to 2 minutes)..."
-          for i in {1..60}; do
+          echo "Waiting for SQL Server to initialize (up to 3 minutes)..."
+          for i in {1..90}; do
             if docker inspect --format='{{.State.Health.Status}}' mssql-server | grep -q "healthy"; then
               echo "SQL Server is ready!"
               exit 0
             fi
-            echo "Waiting... ($i/60)"
+            echo "Waiting... ($i/90)"
             sleep 2
           done
           echo "SQL Server did not become ready in time"
