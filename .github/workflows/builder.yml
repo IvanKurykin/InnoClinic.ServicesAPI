@@ -8,10 +8,9 @@ on:
     branches:
       - main
 env:
-  DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
   SQL_SERVER_PORT: 14332
-  TEST_DB_CONNECTION_STRING: Server=localhost,${{ env.SQL_SERVER_PORT }};User
-    Id=sa;Password=${{ secrets.SQL_SERVER_PASSWORD
+  TEST_DB_CONNECTION_STRING: Server=localhost,14332;User Id=sa;Password=${{
+    secrets.SQL_SERVER_PASSWORD
     }};TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False;Connection
     Timeout=60;Pooling=false;
 jobs:
