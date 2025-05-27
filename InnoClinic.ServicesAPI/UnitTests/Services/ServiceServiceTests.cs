@@ -5,6 +5,7 @@ using Domain.Entities;
 using Domain.Interfaces;
 using FluentAssertions;
 using Infrastructure.Services;
+using InnoClinic.Messaging.Abstractions;
 using Moq;
 using UnitTests.TestCases;
 
@@ -14,13 +15,15 @@ public class ServiceServiceTests
 {
     private readonly Mock<IServiceRepository> _mockServiceRepository;
     private readonly Mock<IMapper> _mockMapper;
+    private readonly Mock<IMessagePublisher> _mockMessagePublisher;
     private readonly ServiceService _service;
 
     public ServiceServiceTests()
     {
         _mockServiceRepository = new Mock<IServiceRepository>();
         _mockMapper = new Mock<IMapper>();
-        _service = new ServiceService(_mockServiceRepository.Object, _mockMapper.Object);
+        _mockMessagePublisher = new Mock<IMessagePublisher>();
+        _service = new ServiceService(_mockServiceRepository.Object, _mockMapper.Object, _mockMessagePublisher.Object);
     }
 
     [Fact]
@@ -88,12 +91,13 @@ public class ServiceServiceTests
         };
 
         _mockServiceRepository.Setup(r => r.GetByIdAsync(serviceId, It.IsAny<CancellationToken>())).ReturnsAsync(existingService);
-
         _mockServiceRepository.Setup(r => r.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>())).ReturnsAsync(updatedService);
+        _mockMessagePublisher.Setup(p => p.PublishEntityUpdated(updatedService, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var result = await _service.UpdateAsync(updatedDto, serviceId);
-         
+
         _mockServiceRepository.Verify(r => r.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockMessagePublisher.Verify(p => p.PublishEntityUpdated(updatedService, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -104,11 +108,11 @@ public class ServiceServiceTests
 
         _mockServiceRepository.Setup(r => r.GetByIdAsync(serviceId, It.IsAny<CancellationToken>())).ReturnsAsync(service);
 
-        _mockServiceRepository.Setup(r => r.DeleteAsync(serviceId, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);  
+        _mockServiceRepository.Setup(r => r.DeleteAsync(serviceId, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         await _service.DeleteAsync(serviceId);
 
-        _mockServiceRepository.Verify(r => r.DeleteAsync(serviceId, It.IsAny<CancellationToken>()), Times.Once);  
+        _mockServiceRepository.Verify(r => r.DeleteAsync(serviceId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

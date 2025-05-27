@@ -5,6 +5,7 @@ using Domain.Entities;
 using Domain.Interfaces;
 using FluentAssertions;
 using Infrastructure.Services;
+using InnoClinic.Messaging.Abstractions;
 using Moq;
 using UnitTests.TestCases;
 
@@ -14,13 +15,15 @@ public class ServiceCategoryServiceTests
 {
     private readonly Mock<IServiceCategoryRepository> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
+    private readonly Mock<IMessagePublisher> _mockMessagePublisher;
     private readonly ServiceCategoryService _service;
 
     public ServiceCategoryServiceTests()
     {
         _mockRepository = new Mock<IServiceCategoryRepository>();
         _mockMapper = new Mock<IMapper>();
-        _service = new ServiceCategoryService(_mockRepository.Object, _mockMapper.Object);
+        _mockMessagePublisher = new Mock<IMessagePublisher>();
+        _service = new ServiceCategoryService(_mockRepository.Object, _mockMapper.Object, _mockMessagePublisher.Object);
     }
 
     [Fact]
@@ -71,10 +74,12 @@ public class ServiceCategoryServiceTests
         _mockRepository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(ServiceCategoryTestCases.ServiceCategory);
         _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>())).ReturnsAsync(updatedEntity);
         _mockMapper.Setup(m => m.Map<ServiceCategoryResponseDto>(updatedEntity)).Returns(ServiceCategoryTestCases.ResponseDto);
+        _mockMessagePublisher.Setup(p => p.PublishEntityUpdated(updatedEntity, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var result = await _service.UpdateAsync(updatedDto, id);
 
         _mockRepository.Verify(r => r.UpdateAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockMessagePublisher.Verify(p => p.PublishEntityUpdated(updatedEntity, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

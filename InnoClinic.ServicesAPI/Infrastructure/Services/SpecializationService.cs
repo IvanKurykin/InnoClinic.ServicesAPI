@@ -4,10 +4,11 @@ using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
+using InnoClinic.Messaging.Abstractions;
 
 namespace Infrastructure.Services;
 
-public class SpecializationService(ISpecializationRepository repository, IMapper mapper) : BaseService<Specialization, SpecializationCreateRequestDto, SpecializationUpdateRequestDto, SpecializationResponseDto>(repository, mapper), ISpecializationService
+public class SpecializationService(ISpecializationRepository repository, IMapper mapper, IMessagePublisher messagePublisher) : BaseService<Specialization, SpecializationCreateRequestDto, SpecializationUpdateRequestDto, SpecializationResponseDto>(repository, mapper, messagePublisher), ISpecializationService
 {
     public async Task<SpecializationResponseDto?> GetWithDependenciesAsync(Guid id, CancellationToken cancellationToken = default)
     {

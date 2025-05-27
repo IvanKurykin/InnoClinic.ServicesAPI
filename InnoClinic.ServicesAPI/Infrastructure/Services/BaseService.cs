@@ -2,7 +2,9 @@
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Interfaces;
+using InnoClinic.Messaging.Abstractions;
 using Infrastructure.Helpers.Constants;
+
 
 namespace Infrastructure.Services;
 
@@ -10,11 +12,13 @@ public class BaseService<TEntity, TCreateRequestDto, TUpdateRequestDto, TRespons
 {
     protected readonly IRepository<TEntity> _repository;
     protected readonly IMapper _mapper;
+    protected readonly IMessagePublisher _messagePublisher;
 
-    protected BaseService(IRepository<TEntity> repository, IMapper mapper)
+    protected BaseService(IRepository<TEntity> repository, IMapper mapper, IMessagePublisher messagePublisher)
     {
         _repository = repository;
         _mapper = mapper;
+        _messagePublisher = messagePublisher;
     }
 
     public virtual async Task<TResponseDto> CreateAsync(TCreateRequestDto dto, CancellationToken cancellationToken = default)
@@ -57,6 +61,8 @@ public class BaseService<TEntity, TCreateRequestDto, TUpdateRequestDto, TRespons
 
         var result = await _repository.UpdateAsync(entity, cancellationToken);
 
+        await _messagePublisher.PublishEntityUpdated(result, cancellationToken);
+        
         return _mapper.Map<TResponseDto>(result);
     }
 }

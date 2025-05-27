@@ -5,6 +5,7 @@ using Domain.Entities;
 using Domain.Interfaces;
 using FluentAssertions;
 using Infrastructure.Services;
+using InnoClinic.Messaging.Abstractions;
 using Moq;
 using UnitTests.TestCases;
 
@@ -14,13 +15,15 @@ public class SpecializationServiceTests
 {
     private readonly Mock<ISpecializationRepository> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
+    private readonly Mock<IMessagePublisher> _mockMessagePublisher;
     private readonly SpecializationService _service;
 
     public SpecializationServiceTests()
     {
         _mockRepository = new Mock<ISpecializationRepository>();
         _mockMapper = new Mock<IMapper>();
-        _service = new SpecializationService(_mockRepository.Object, _mockMapper.Object);
+        _mockMessagePublisher = new Mock<IMessagePublisher>();
+        _service = new SpecializationService(_mockRepository.Object, _mockMapper.Object, _mockMessagePublisher.Object);
     }
 
     [Fact]
@@ -70,10 +73,12 @@ public class SpecializationServiceTests
 
         _mockRepository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(SpecializationTestCases.Specialization);
         _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<Specialization>(), It.IsAny<CancellationToken>())).ReturnsAsync(updatedEntity);
+        _mockMessagePublisher.Setup(p => p.PublishEntityUpdated(updatedEntity, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var result = await _service.UpdateAsync(updateDto, id);
 
         _mockRepository.Verify(r => r.UpdateAsync(It.IsAny<Specialization>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockMessagePublisher.Verify(p => p.PublishEntityUpdated(updatedEntity, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
