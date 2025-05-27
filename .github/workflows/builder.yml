@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+  RABBITMQ_VHOST: ${{ secrets.RABBITMQ_VHOST }}
+  RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }}
+  RABBITMQ_PASS: ${{ secrets.RABBITMQ_PASS }}
+  DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -52,3 +59,8 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+        RABBITMQ_VHOST: ${{ secrets.RABBITMQ_VHOST }}
+        RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }}
+        RABBITMQ_PASS: ${{ secrets.RABBITMQ_PASS }}
+        DEFAULT_CONNECTION: ${{ secrets.DEFAULT_CONNECTION }}
