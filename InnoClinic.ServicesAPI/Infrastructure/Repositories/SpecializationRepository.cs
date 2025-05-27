@@ -17,7 +17,7 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
         var dict = new Dictionary<Guid, Specialization>();
 
         await _connection.QueryAsync<Specialization, Service, Specialization>(
-            SpecializationSqlBuilder.GetByIdWithDependencies(),
+            SpecializationSqlBuilder.GetByIdWithDependencies,
             DapperMappingHelper.MapWithChildren<Specialization, Service>(dict, s => s.Id, (s, list) => s.Services = list, (s, svc) => ((List<Service>)s.Services!).Add(svc)),
             new { Id = id },
             splitOn: DapperConstants.SplitOnId);
@@ -30,7 +30,7 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
         var dict = new Dictionary<Guid, Specialization>();
 
         await _connection.QueryAsync<Specialization, Service, Specialization>(
-            SpecializationSqlBuilder.GetAllWithDependencies(),
+            SpecializationSqlBuilder.GetAllWithDependencies,
             DapperMappingHelper.MapWithChildren<Specialization, Service>(dict, s => s.Id, (s, list) => s.Services = list, (s, svc) => ((List<Service>)s.Services!).Add(svc)
             ),
             splitOn: DapperConstants.SplitOnId);
@@ -39,5 +39,5 @@ public class SpecializationRepository(IDbConnection connection) : BaseRepository
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default) =>
-        await _connection.ExecuteAsync(SpecializationSqlBuilder.Delete(), new { Id = id });
+        await _connection.ExecuteAsync(SpecializationSqlBuilder.Delete, new { Id = id });
 }

@@ -17,7 +17,7 @@ public class ServiceCategoryRepository(IDbConnection connection) : BaseRepositor
         var dict = new Dictionary<Guid, ServiceCategory>();
 
         await _connection.QueryAsync<ServiceCategory, Service, ServiceCategory>(
-            ServiceCategorySqlBuilder.GetByIdWithDependencies(),
+            ServiceCategorySqlBuilder.GetByIdWithDependencies,
             DapperMappingHelper.MapWithChildren<ServiceCategory, Service>(dict, c => c.Id, (c, list) => c.Services = list, (c, s) => ((List<Service>)c.Services!).Add(s)),
             new { Id = id },
             splitOn: DapperConstants.SplitOnId);
@@ -30,7 +30,7 @@ public class ServiceCategoryRepository(IDbConnection connection) : BaseRepositor
         var dict = new Dictionary<Guid, ServiceCategory>();
 
         await _connection.QueryAsync<ServiceCategory, Service, ServiceCategory>(
-            ServiceCategorySqlBuilder.GetAllWithDependencies(),
+            ServiceCategorySqlBuilder.GetAllWithDependencies,
             DapperMappingHelper.MapWithChildren<ServiceCategory, Service>(dict, c => c.Id, (c, list) => c.Services = list, (c, s) => ((List<Service>)c.Services!).Add(s)),
             splitOn: DapperConstants.SplitOnId);
 
@@ -38,5 +38,5 @@ public class ServiceCategoryRepository(IDbConnection connection) : BaseRepositor
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default) =>
-        await _connection.ExecuteAsync(ServiceCategorySqlBuilder.Delete(), new { Id = id });
+        await _connection.ExecuteAsync(ServiceCategorySqlBuilder.Delete, new { Id = id });
 }
